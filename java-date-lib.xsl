@@ -40,6 +40,12 @@
     
       <xsl:variable name="dates" select="saxext:date-parser($date)"/>
       <xsl:choose>
+        <xsl:when test="count($dates) = 1 and matches($dates, 'unparsable')">
+          <date>
+            <xsl:attribute name="standardDate" select="suspiciousDate"/>
+            <xsl:value-of select="$date"/>
+          </date>
+        </xsl:when>
         <xsl:when test="count($dates) = 1">
           <date>
             <xsl:attribute name="standardDate" select="$dates"/>
