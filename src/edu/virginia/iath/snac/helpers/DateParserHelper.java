@@ -86,21 +86,75 @@ public class DateParserHelper {
 		return getOutputString(dates[0]) + handleModifier(0);
 	}
 	
+	private void parsePreprocess(int i) {
+
+		/**
+		 * Fixes for non-standardized date formats
+		 */
+		// Handle non-standard month representations
+		dateStr[i] = dateStr[i].replace("Sept.", "Sep.");
+		
+	
+		/**
+		 * Handling actual date keywords such as circa, centuries, questions, etc
+		 */
+		// Look for and handle the circa/Circa/... keyword
+		if (dateStr[i].contains("circa") || dateStr[i].contains("Circa") || dateStr[i].contains("ca.")) {
+			dateStrModifier[i] = "circa";
+			
+			dateStr[i] = dateStr[i].replace("circa", "");
+			dateStr[i] = dateStr[i].replace("Circa", "");
+			dateStr[i] = dateStr[i].replace("ca.", "");
+		}
+		
+		// Look for decades (s after the date)
+		if (dateStr[i].endsWith("s")) {
+			dateStrModifier[i] = "decade";
+			
+			dateStr[i] = dateStr[i].substring(0,dateStr[i].length() -1);
+		}
+		
+		// Look for fuzzy dates (some form of "[?]", "(?)", ...)
+		if (dateStr[i].contains("?")) {
+			dateStrModifier[i] = "fuzzy";
+			
+			dateStr[i] = dateStr[i].replace("[?]", "");
+			dateStr[i] = dateStr[i].replace("(?)", "");
+			dateStr[i] = dateStr[i].replace("?", "");
+		}
+
+		/**
+		 * Trim out extra punctuation 
+		 */
+		// Quick fixes, including ending with a period
+		if (dateStr[i].endsWith("."))
+			dateStr[i] = dateStr[i].substring(0, dateStr[i].length() -1);
+		if (dateStr[i].endsWith(","))
+			dateStr[i] = dateStr[i].substring(0, dateStr[i].length() -1);
+		if (dateStr[i].endsWith("]") && dateStr[i].startsWith("["))
+			dateStr[i] = dateStr[i].substring(1, dateStr[i].length() -1);
+		
+		// Trim down before returning, just to be sure.
+		dateStr[i] = dateStr[i].trim();
+		
+	}
+	
 	private void parseDate(int i) {
 		dateStrModifier[i] = null;
 		
-		if (dateStr[i].contains("circa")) {
-			dateStrModifier[i] = "circa";
-			dateStr[i] = dateStr[i].replace("circa", "");
-		}
+		// preprocess the date string, including handling boundary cases and special date types.
+		parsePreprocess(i);
 		
 		try {
 			// Currently we are ignoring "-" in the text, since that is used for ranges in dates
 			dates[i] = DateUtils.parseDate(dateStr[i].trim(),
-					"yyyy", /*"yyyy-MM", "yyyy-M", "yyyy-M-d", "yyyy-M-dd", "yyyy-MM-d", "yyyy-MM-dd",*/ // standard dates
-					"MMMMM dd, yyyy", "MMM dd, yyyy", "MMM dd yyyy", "MMMMM dd, yyyy", "yyyy MMM dd",
+					"yyyy", "yyyy,", /*"yyyy-MM", "yyyy-M", "yyyy-M-d", "yyyy-M-dd", "yyyy-MM-d", "yyyy-MM-dd",*/ // standard dates
+					"MMMMM dd, yyyy", "MMM dd, yyyy", "MMM. d, yyyy", "MMM dd yyyy", "MMMMM dd, yyyy", "yyyy MMM dd", "yyyy MMM. dd",
 					"dd MMM, yyyy", "dd MMMMM, yyyy", "yyyy, MMM dd", "yyyy, MMMMM dd", "yyyy, MMM. dd",
-					"MMMMM yyyy", "MMM yyyy"
+					"MMMMM yyyy", "MMM yyyy", "yyyy, MMM. d", "yyyy, MMMMM d", "yyyy, MMM", "yyyy, MMM.", "yyyy, MMMMM",
+					"yyyy, dd MMM.", "yyyy, dd MMMMM", "yyyy, dd MMM", "yyyy, MMM.dd", "yyyy,MMM.dd", "yyyy,MMM. dd",
+					"yyyy, MMMd", "yyyy, MMMMMd", "yyyy, MMM.d", "yyyyMMMd", "yyyyMMMMMd", "yyyy, MMM, d", "yyyy. MMM. d",
+					"yyyy MMM", "yyyy, MMM.", "yyyy MMMMM", "yyyy, MMMMM", "yyyy,MMMMM dd", "yyyy,MMM dd", "yyyy,MMM. dd"
 					);
 		} catch (ParseException e) {
 			dates[i] = null;

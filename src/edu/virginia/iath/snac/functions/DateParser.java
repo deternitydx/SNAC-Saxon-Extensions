@@ -110,11 +110,12 @@ public class DateParser extends ExtensionFunctionDefinition {
 				String dateStr = arguments[0].iterate().next().getStringValue();
 				DateParserHelper parser = new DateParserHelper(dateStr);
 				
+				/*
 				if (parser.isRange()) // there is a range
 					outStr = parser.firstDate() + " to " + parser.secondDate();
 				else				// no range, just one date
 					outStr = parser.getDate();
-
+				*/
 				
 
 				// Write the value out to a Sequence object:
