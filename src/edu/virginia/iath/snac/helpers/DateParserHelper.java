@@ -289,7 +289,7 @@ public class DateParserHelper {
 			}
 			
 			if (dateStrModifier.get(i).contains("season")) {
-				String season = dateStrModifier.get(i).get(dateStrModifier.get(i).indexOf("season"));
+				String season = dateStrModifier.get(i).get(dateStrModifier.get(i).indexOf("season") + 1);
 				Calendar d = Calendar.getInstance();
 				d.setTime(dates[i]);
 				int year = d.get(Calendar.YEAR);
