@@ -272,6 +272,18 @@ public class DateParserHelper {
 				
 			}
 			
+
+			if (dateStrModifier.get(i).contains("fuzzy")) {
+				Calendar d = Calendar.getInstance();
+				d.setTime(dates[i]);
+				d.add(Calendar.YEAR, -1);
+				notBefore[i] = d.getTime();
+				d.setTime(dates[i]);
+				d.add(Calendar.YEAR, 1);
+				notAfter[i]  = d.getTime();
+				
+			}
+			
 			if (dateStrModifier.get(i).contains("decade")) {
 				// Create a calendar for this date
 				Calendar d = Calendar.getInstance();
@@ -286,6 +298,9 @@ public class DateParserHelper {
 					d.add(Calendar.YEAR, 9);
 					notAfter[i] = d.getTime();
 				}
+				
+				// Clear the date if it's a decade
+				dates[i] = null;
 			}
 			
 			if (dateStrModifier.get(i).contains("season")) {
@@ -297,6 +312,9 @@ public class DateParserHelper {
 				Date[] seasonDates = getSeasonDates(season, year);
 				notBefore[i] = seasonDates[0];
 				notAfter[i] = seasonDates[1];
+				
+				// Clear the date if it's actually a season 
+				dates[i] = null;
 			}
 		}
 	}
@@ -308,6 +326,11 @@ public class DateParserHelper {
 	private void updateOutputFormat() {
 		if (dateStrModifier.get(0).contains("season"))
 			return;
+		
+		if (dateStrModifier.get(0).contains("decade")) {
+			outputFormat = "yyyy";
+			return;
+		}
 		
 		switch(dateStr[0].split("[\\s.,-]+").length) {
 			case 1:
