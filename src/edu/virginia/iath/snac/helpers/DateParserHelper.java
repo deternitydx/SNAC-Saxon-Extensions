@@ -327,28 +327,29 @@ public class DateParserHelper {
 		
 		Calendar d = Calendar.getInstance();
 		
+		// Note: Java is WEIRD:  0 = JANUARY, 1 = FEBRUARY, ...
 		if (season.equals("winter")) {
-			d.set(year, 12, 21);
+			d.set(year, Calendar.DECEMBER, 21);
 			seasonDates[0] = d.getTime();
-			d.set(year + 1, 3, 19);
+			d.set(year + 1, Calendar.MARCH, 19);
 			seasonDates[1] = d.getTime();
 			
 		} else if (season.equals("spring")) {
-			d.set(year, 3, 20);
+			d.set(year, Calendar.MARCH, 20);
 			seasonDates[0] = d.getTime();
-			d.set(year, 6, 20);
+			d.set(year, Calendar.JUNE, 20);
 			seasonDates[1] = d.getTime();
 			
 		} else if (season.equals("fall") || season.equals("autumn")) {
-			d.set(year, 9, 22);
+			d.set(year, Calendar.SEPTEMBER, 22);
 			seasonDates[0] = d.getTime();
-			d.set(year, 12, 20);
+			d.set(year, Calendar.DECEMBER, 20);
 			seasonDates[1] = d.getTime();
 			
 		} else if (season.equals("summer")) {
-			d.set(year, 6, 21);
+			d.set(year, Calendar.JUNE, 21);
 			seasonDates[0] = d.getTime();
-			d.set(year, 9, 21);
+			d.set(year, Calendar.SEPTEMBER, 21);
 			seasonDates[1] = d.getTime();
 			
 		}
