@@ -34,15 +34,26 @@ public class DateParserHelper {
 	
 	private String dateString = null;
 	private String[] dateStr = null;
+	private String[] origDateStr = null;
+	private Date[] notBefore = null;
+	private Date[] notAfter = null;
 	private Date[] dates = null;
 	private String[] dateStrModifier = null;
-	private static String outputFormat = "yyyy-MM-dd";
+	private String outputFormat = "yyyy-MM-dd";
 	
 
 	public DateParserHelper(String d) {
+		// Initialize dates
 		dates = new Date[2];
+		notBefore = new Date[2];
+		notAfter = new Date[2];
 		dateStr = new String[2];
+		origDateStr = new String[2];
 		dateStrModifier = new String[2];
+		
+		dates[0] = null; dates[1] = null;
+		notBefore[0] = null; notBefore[1] = null;
+		notAfter[0] = null; notAfter[1] = null;
 		
 		// Store the date string locally
 		dateString = d.trim();
@@ -53,17 +64,22 @@ public class DateParserHelper {
 	
 	private void runParser() {
 		// Check for date range.  If so, parse separately
+		dateStringPreprocess();
+		
 		if (dateString.contains("-")) {
 			dateStr[0] = dateString.substring(0, dateString.indexOf("-")).trim();
 			dateStr[1] = dateString.substring(dateString.indexOf("-") + 1).trim();
+			origDateStr[0] = dateStr[0];
+			origDateStr[1] = dateStr[1];
 			
 			// parse the two dates
 			parseDate(0);
 			parseDate(1);
 		} else {
 			dateStr[0] = dateString.trim();
-			dates[1] = null;
+			origDateStr[0] = dateStr[0];
 			dateStr[1] = null;
+			origDateStr[1] = null;
 			
 			// parse the date
 			parseDate(0);
@@ -74,16 +90,52 @@ public class DateParserHelper {
 		return dates[1] != null;
 	}
 
+	public boolean wasParsed() {
+		return dates[0] != null;
+	}
+
 	public String firstDate() {
-		return getOutputString(dates[0]) + handleModifier(0);
+		return getOutputString(dates[0]);
 	}
 
 	public String secondDate() {
-		return getOutputString(dates[1]) + handleModifier(0);
+		return getOutputString(dates[1]);
 	}
 
+	public String firstNotBeforeDate() {
+		return getOutputString(notBefore[0]);
+	}
+
+	public String secondNotBeforeDate() {
+		return getOutputString(notBefore[1]);
+	}
+
+	public String firstNotAfterDate() {
+		return getOutputString(notAfter[0]);
+	}
+
+	public String secondNotAfterDate() {
+		return getOutputString(notAfter[1]);
+	}
+	
 	public String getDate() {
-		return getOutputString(dates[0]) + handleModifier(0);
+		return getOutputString(dates[0]);
+	}
+	
+	public String firstOriginalDate() {
+		return origDateStr[0];
+	}
+
+	public String secondOriginalDate() {
+		return origDateStr[1];
+	}
+	
+	private void dateStringPreprocess() {
+		
+		// Handle dates surrounded with []
+		if (dateString.endsWith("]") && dateString.startsWith("["))
+			dateString = dateString.substring(1, dateString.length() -1);
+		
 	}
 	
 	private void parsePreprocess(int i) {
@@ -93,6 +145,9 @@ public class DateParserHelper {
 		 */
 		// Handle non-standard month representations
 		dateStr[i] = dateStr[i].replace("Sept.", "Sep.");
+		// Handle dates surrounded with []
+		if (dateStr[i].endsWith("]") && dateStr[i].startsWith("["))
+			dateStr[i] = dateStr[i].substring(1, dateStr[i].length() -1);
 		
 	
 		/**
@@ -131,8 +186,10 @@ public class DateParserHelper {
 			dateStr[i] = dateStr[i].substring(0, dateStr[i].length() -1);
 		if (dateStr[i].endsWith(","))
 			dateStr[i] = dateStr[i].substring(0, dateStr[i].length() -1);
-		if (dateStr[i].endsWith("]") && dateStr[i].startsWith("["))
-			dateStr[i] = dateStr[i].substring(1, dateStr[i].length() -1);
+		dateStr[i] = dateStr[i].replace("(", "");
+		dateStr[i] = dateStr[i].replace(")", "");
+		dateStr[i] = dateStr[i].replace("'", "");
+		dateStr[i] = dateStr[i].replace("  ", " ");
 		
 		// Trim down before returning, just to be sure.
 		dateStr[i] = dateStr[i].trim();
@@ -156,31 +213,46 @@ public class DateParserHelper {
 					"yyyy, MMMd", "yyyy, MMMMMd", "yyyy, MMM.d", "yyyyMMMd", "yyyyMMMMMd", "yyyy, MMM, d", "yyyy. MMM. d",
 					"yyyy MMM", "yyyy, MMM.", "yyyy MMMMM", "yyyy, MMMMM", "yyyy,MMMMM dd", "yyyy,MMM dd", "yyyy,MMM. dd"
 					);
+			
+			handleModifiers(i);
+			updateOutputFormat();
+			
 		} catch (ParseException e) {
 			dates[i] = null;
 		}
 	}
 	
-	private String handleModifier(int i) {
-		String output = "";
+	private void handleModifiers(int i) {
 		if (dateStrModifier[i] != null) {
-			output += " ";
 			if (dateStrModifier[i].equals("circa")) {
 				Calendar d = Calendar.getInstance();
 				d.setTime(dates[i]);
 				d.add(Calendar.YEAR, -3);
-				output += "( " + DateFormatUtils.format(d.getTime(), outputFormat) + " -- ";
+				notBefore[i] = d.getTime();
 				d.setTime(dates[i]);
 				d.add(Calendar.YEAR, 3);
-				output += DateFormatUtils.format(d.getTime(), outputFormat) + ")";
+				notAfter[i]  = d.getTime();
 				
 			}
 		}
-		return output;
 	}
 	
 	private String getOutputString(Date d) {
-		return (d == null) ? "unparsable" : DateFormatUtils.format(d, outputFormat);
+		return (d == null) ? "null" : DateFormatUtils.format(d, outputFormat);
 	}
+	
+	private void updateOutputFormat() {
+		switch(dateStr[0].split("[\\s.,-]+").length) {
+			case 1:
+				outputFormat = "yyyy";
+				break;
+			case 2:
+				outputFormat = "yyyy-MM";
+				break;
+			default:
+				outputFormat = "yyyy-MM-dd";	
+		}
+	}
+	
 
 }

@@ -95,6 +95,27 @@ public class DateParser extends ExtensionFunctionDefinition {
 		/**
 		 * Function call method.  This is what actually performs the action of the function call
 		 * 
+		 * The return value will always be a Sequence in one of the following specifications:
+		 * 
+		 * Unable to parse:
+		 * 		suspiciousDate
+		 * 
+		 * One date:
+		 * 		standard date
+		 * 		original date
+		 * 		not before standard date (or "null")
+		 * 		not after standard date (or "null")
+		 * 
+		 * Date range (two dates)
+		 * 		first date standard date
+		 * 		first date original date
+		 * 		first date not before standard date (or "null")
+		 * 		first date not after standard date (or "null")
+		 * 		second date standard date
+		 * 		second date original date
+		 * 		second date not before standard date (or "null")
+		 * 		second date not after standard date (or "null")
+		 * 
 		 * @param XPathContext context the context of the call
 		 * @param Sequence[] arguments the arguments supplied to the call
 		 * @return Sequence the output of the call
@@ -123,12 +144,29 @@ public class DateParser extends ExtensionFunctionDefinition {
 				// which may be atomic values
 				List<XdmItem> outputs = new ArrayList<XdmItem>();
 				
-				// Add the first date (always here)
-				outputs.add(new XdmAtomicValue(parser.firstDate()));
 				
-				// If we have a range, then also add the second date to the list of values
-				if (parser.isRange())
-					outputs.add(new XdmAtomicValue(parser.secondDate()));
+				// Check to see if the values were parsed
+				if (parser.wasParsed()) {
+
+					// Add the first parsed date (always here)
+					outputs.add(new XdmAtomicValue(parser.firstDate()));
+					outputs.add(new XdmAtomicValue(parser.firstOriginalDate()));
+					outputs.add(new XdmAtomicValue(parser.firstNotBeforeDate()));
+					outputs.add(new XdmAtomicValue(parser.firstNotAfterDate()));
+					
+					// If we have a range, then also add the second date to the list of values
+					if (parser.isRange()) {
+						outputs.add(new XdmAtomicValue(parser.secondDate()));
+						outputs.add(new XdmAtomicValue(parser.secondOriginalDate()));
+						outputs.add(new XdmAtomicValue(parser.secondNotBeforeDate()));
+						outputs.add(new XdmAtomicValue(parser.secondNotAfterDate()));
+					}
+					
+					
+				} else {
+					// nothing was parsed
+					outputs.add(new XdmAtomicValue("suspiciousDate"));
+				}
 				
 				// Convert the ArrayList into an XdmValue
 				XdmValue itm = new XdmValue(outputs);
@@ -139,7 +177,7 @@ public class DateParser extends ExtensionFunctionDefinition {
 			catch (Exception sae)
 			{
 				// If something went wrong, then just return the value "unparseable" to Saxon.
-				seq = (new XdmAtomicValue("unparseable")).getUnderlyingValue();
+				seq = (new XdmAtomicValue("suspiciousDate")).getUnderlyingValue();
 			}
 
 			return seq;
