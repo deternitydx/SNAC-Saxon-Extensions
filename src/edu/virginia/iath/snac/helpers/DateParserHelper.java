@@ -41,6 +41,7 @@ public class DateParserHelper {
 	private Date[] dates = null;
 	private ArrayList<ArrayList<String>> dateStrModifier = null;
 	private String outputFormat = "yyyy-MM-dd";
+	private boolean parsed = false;
 	
 
 	public DateParserHelper(String d) {
@@ -95,7 +96,7 @@ public class DateParserHelper {
 	}
 
 	public boolean wasParsed() {
-		return dates[0] != null;
+		return parsed;
 	}
 
 	public String firstDate() {
@@ -253,6 +254,7 @@ public class DateParserHelper {
 			
 			handleModifiers(i);
 			updateOutputFormat();
+			parsed = true;
 			
 		} catch (ParseException e) {
 			dates[i] = null;
