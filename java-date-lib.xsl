@@ -40,27 +40,45 @@
     
       <xsl:variable name="dates" select="saxext:date-parser($date)"/>
       <xsl:choose>
-        <xsl:when test="count($dates) = 1 and matches($dates, 'unparsable')">
-          <date>
-            <xsl:attribute name="standardDate" select="suspiciousDate"/>
-            <xsl:value-of select="$date"/>
-          </date>
-        </xsl:when>
         <xsl:when test="count($dates) = 1">
           <date>
-            <xsl:attribute name="standardDate" select="$dates"/>
+            <xsl:attribute name="standardDate" select="'suspiciousDate'"/>
             <xsl:value-of select="$date"/>
           </date>
         </xsl:when>
-        <xsl:when test="count($dates) = 2">
+        <xsl:when test="count($dates) = 4">
+          <date>
+            <xsl:attribute name="standardDate" select="$dates[1]"/>
+	    <xsl:if test="not(matches($dates[3], 'null'))">
+		<xsl:attribute name="notBefore" select="$dates[3]"/>
+	    </xsl:if>
+	    <xsl:if test="not(matches($dates[4], 'null'))">
+		<xsl:attribute name="notAfter" select="$dates[4]"/>
+	    </xsl:if>
+            <xsl:value-of select="$dates[2]"/>
+          </date>
+        </xsl:when>
+        <xsl:when test="count($dates) = 8">
           <dateRange>
             <fromDate>
               <xsl:attribute name="standardDate" select="$dates[1]"/>
-              <xsl:value-of select="$dates[1]"/>
+	      <xsl:if test="not(matches($dates[3], 'null'))">
+		<xsl:attribute name="notBefore" select="$dates[3]"/>
+	      </xsl:if>
+	      <xsl:if test="not(matches($dates[4], 'null'))">
+		<xsl:attribute name="notAfter" select="$dates[4]"/>
+	      </xsl:if>
+              <xsl:value-of select="$dates[2]"/>
             </fromDate>
             <toDate>
-              <xsl:attribute name="standardDate" select="$dates[2]"/>
-              <xsl:value-of select="$dates[2]"/>
+              <xsl:attribute name="standardDate" select="$dates[5]"/>
+	      <xsl:if test="not(matches($dates[7], 'null'))">
+		<xsl:attribute name="notBefore" select="$dates[7]"/>
+	      </xsl:if>
+	      <xsl:if test="not(matches($dates[8], 'null'))">
+		<xsl:attribute name="notAfter" select="$dates[8]"/>
+	      </xsl:if>
+              <xsl:value-of select="$dates[6]"/>
             </toDate>
           </dateRange>
         </xsl:when>
