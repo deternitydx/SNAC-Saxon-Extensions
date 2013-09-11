@@ -17,6 +17,7 @@
 package edu.virginia.iath.snac.helpers;
 
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -38,7 +39,7 @@ public class DateParserHelper {
 	private Date[] notBefore = null;
 	private Date[] notAfter = null;
 	private Date[] dates = null;
-	private String[] dateStrModifier = null;
+	private ArrayList<ArrayList<String>> dateStrModifier = null;
 	private String outputFormat = "yyyy-MM-dd";
 	
 
@@ -49,7 +50,7 @@ public class DateParserHelper {
 		notAfter = new Date[2];
 		dateStr = new String[2];
 		origDateStr = new String[2];
-		dateStrModifier = new String[2];
+		dateStrModifier = new ArrayList<ArrayList<String>>();
 		
 		dates[0] = null; dates[1] = null;
 		notBefore[0] = null; notBefore[1] = null;
@@ -71,6 +72,8 @@ public class DateParserHelper {
 			dateStr[1] = dateString.substring(dateString.indexOf("-") + 1).trim();
 			origDateStr[0] = dateStr[0];
 			origDateStr[1] = dateStr[1];
+			dateStrModifier.add(new ArrayList<String>());
+			dateStrModifier.add(new ArrayList<String>());
 			
 			// parse the two dates
 			parseDate(0);
@@ -80,6 +83,7 @@ public class DateParserHelper {
 			origDateStr[0] = dateStr[0];
 			dateStr[1] = null;
 			origDateStr[1] = null;
+			dateStrModifier.add(new ArrayList<String>());
 			
 			// parse the date
 			parseDate(0);
@@ -155,7 +159,7 @@ public class DateParserHelper {
 		 */
 		// Look for and handle the circa/Circa/... keyword
 		if (dateStr[i].contains("circa") || dateStr[i].contains("Circa") || dateStr[i].contains("ca.")) {
-			dateStrModifier[i] = "circa";
+			dateStrModifier.get(i).add("circa");
 			
 			dateStr[i] = dateStr[i].replace("circa", "");
 			dateStr[i] = dateStr[i].replace("Circa", "");
@@ -164,18 +168,51 @@ public class DateParserHelper {
 		
 		// Look for decades (s after the date)
 		if (dateStr[i].endsWith("s")) {
-			dateStrModifier[i] = "decade";
+			dateStrModifier.get(i).add("decade");
 			
 			dateStr[i] = dateStr[i].substring(0,dateStr[i].length() -1);
 		}
 		
 		// Look for fuzzy dates (some form of "[?]", "(?)", ...)
 		if (dateStr[i].contains("?")) {
-			dateStrModifier[i] = "fuzzy";
+			dateStrModifier.get(i).add("fuzzy");
 			
 			dateStr[i] = dateStr[i].replace("[?]", "");
 			dateStr[i] = dateStr[i].replace("(?)", "");
 			dateStr[i] = dateStr[i].replace("?", "");
+		}
+		
+		// Look for seasons
+		String lowercase = dateStr[i].toLowerCase();
+		if (lowercase.contains("fall") || lowercase.contains("autumn")) {
+			dateStrModifier.get(i).add("season");
+			dateStrModifier.get(i).add("fall");
+
+			dateStr[i] = dateStr[i].replace("fall", "");
+			dateStr[i] = dateStr[i].replace("autumn", "");
+			dateStr[i] = dateStr[i].replace("Fall", "");
+			dateStr[i] = dateStr[i].replace("Autumn", "");
+		}
+		if (lowercase.contains("spring")) {
+			dateStrModifier.get(i).add("season");
+			dateStrModifier.get(i).add("spring");
+
+			dateStr[i] = dateStr[i].replace("spring", "");
+			dateStr[i] = dateStr[i].replace("Spring", "");
+		}
+		if (lowercase.contains("winter")) {
+			dateStrModifier.get(i).add("season");
+			dateStrModifier.get(i).add("winter");
+
+			dateStr[i] = dateStr[i].replace("winter", "");
+			dateStr[i] = dateStr[i].replace("Winter", "");
+		}
+		if (lowercase.contains("summer")) {
+			dateStrModifier.get(i).add("season");
+			dateStrModifier.get(i).add("summer");
+
+			dateStr[i] = dateStr[i].replace("summer", "");
+			dateStr[i] = dateStr[i].replace("Summer", "");
 		}
 
 		/**
@@ -197,7 +234,7 @@ public class DateParserHelper {
 	}
 	
 	private void parseDate(int i) {
-		dateStrModifier[i] = null;
+		//dateStrModifier[i] = null;
 		
 		// preprocess the date string, including handling boundary cases and special date types.
 		parsePreprocess(i);
@@ -223,8 +260,8 @@ public class DateParserHelper {
 	}
 	
 	private void handleModifiers(int i) {
-		if (dateStrModifier[i] != null) {
-			if (dateStrModifier[i].equals("circa")) {
+		if (!dateStrModifier.get(i).isEmpty()) {
+			if (dateStrModifier.get(i).contains("circa")) {
 				Calendar d = Calendar.getInstance();
 				d.setTime(dates[i]);
 				d.add(Calendar.YEAR, -3);
@@ -233,6 +270,33 @@ public class DateParserHelper {
 				d.add(Calendar.YEAR, 3);
 				notAfter[i]  = d.getTime();
 				
+			}
+			
+			if (dateStrModifier.get(i).contains("decade")) {
+				// Create a calendar for this date
+				Calendar d = Calendar.getInstance();
+				d.setTime(dates[i]);
+				int year = d.get(Calendar.YEAR);
+				if (year % 100 == 0) { // dealing with centuries
+					notBefore[i] = d.getTime();
+					d.add(Calendar.YEAR, 99);
+					notAfter[i] = d.getTime();
+				} else if (year % 10 == 0) { // dealing with decades
+					notBefore[i] = d.getTime();
+					d.add(Calendar.YEAR, 9);
+					notAfter[i] = d.getTime();
+				}
+			}
+			
+			if (dateStrModifier.get(i).contains("season")) {
+				String season = dateStrModifier.get(i).get(dateStrModifier.get(i).indexOf("season"));
+				Calendar d = Calendar.getInstance();
+				d.setTime(dates[i]);
+				int year = d.get(Calendar.YEAR);
+				
+				Date[] seasonDates = getSeasonDates(season, year);
+				notBefore[i] = seasonDates[0];
+				notAfter[i] = seasonDates[1];
 			}
 		}
 	}
@@ -252,6 +316,41 @@ public class DateParserHelper {
 			default:
 				outputFormat = "yyyy-MM-dd";	
 		}
+	}
+	
+	private Date[] getSeasonDates(String seasonStr, int year) {
+		Date[] seasonDates = new Date[2];
+		String season = seasonStr.toLowerCase().trim();
+		
+		Calendar d = Calendar.getInstance();
+		
+		if (season.equals("winter")) {
+			d.set(year, 12, 21);
+			seasonDates[0] = d.getTime();
+			d.set(year + 1, 3, 19);
+			seasonDates[1] = d.getTime();
+			
+		} else if (season.equals("spring")) {
+			d.set(year, 3, 20);
+			seasonDates[0] = d.getTime();
+			d.set(year, 6, 20);
+			seasonDates[1] = d.getTime();
+			
+		} else if (season.equals("fall") || season.equals("autumn")) {
+			d.set(year, 9, 22);
+			seasonDates[0] = d.getTime();
+			d.set(year, 12, 20);
+			seasonDates[1] = d.getTime();
+			
+		} else if (season.equals("summer")) {
+			d.set(year, 6, 21);
+			seasonDates[0] = d.getTime();
+			d.set(year, 9, 21);
+			seasonDates[1] = d.getTime();
+			
+		}
+		
+		return seasonDates;
 	}
 	
 
