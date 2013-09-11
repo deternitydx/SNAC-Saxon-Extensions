@@ -306,6 +306,9 @@ public class DateParserHelper {
 	}
 	
 	private void updateOutputFormat() {
+		if (dateStrModifier.get(0).contains("season"))
+			return;
+		
 		switch(dateStr[0].split("[\\s.,-]+").length) {
 			case 1:
 				outputFormat = "yyyy";
