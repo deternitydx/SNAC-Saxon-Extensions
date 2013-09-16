@@ -18,6 +18,7 @@ package edu.virginia.iath.snac.helpers;
 
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -71,23 +72,31 @@ public class DateParserHelper {
 		if (dateString.contains("-")) {
 			dateStr[0] = dateString.substring(0, dateString.indexOf("-")).trim();
 			dateStr[1] = dateString.substring(dateString.indexOf("-") + 1).trim();
-			origDateStr[0] = dateStr[0];
-			origDateStr[1] = dateStr[1];
-			dateStrModifier.add(new ArrayList<String>());
-			dateStrModifier.add(new ArrayList<String>());
 			
-			// parse the two dates
-			parseDate(0);
-			parseDate(1);
+		} else if (dateString.contains("through")) {
+			dateStr[0] = dateString.substring(0, dateString.indexOf("through")).trim();
+			dateStr[1] = dateString.substring(dateString.indexOf("through") + 7).trim();
+			
 		} else {
 			dateStr[0] = dateString.trim();
-			origDateStr[0] = dateStr[0];
-			dateStr[1] = null;
-			origDateStr[1] = null;
-			dateStrModifier.add(new ArrayList<String>());
-			
-			// parse the date
-			parseDate(0);
+		}
+		
+		for (int i = 0; i < dateStr.length; i++) {
+			if (dateStr[i] != null) {
+				// set up strings for each date
+				origDateStr[i] = dateStr[i];
+				dateStrModifier.add(new ArrayList<String>());
+
+				// parse the dates found
+				parseDate(i);
+			}
+		}
+
+		for (int i = 0; i < dateStr.length; i++) {
+			if (dateStr[i] != null) {
+				// Handle any modifiers to each of these dates
+				handleModifiers(i);
+			}
 		}
 	}
 
@@ -234,6 +243,36 @@ public class DateParserHelper {
 		
 	}
 	
+	private void parsePostprocess(int i) {
+		// Check to see if this date is incorrectly too low compared with the first one
+		if (i > 0) { // We are past the first date, but in a date range
+			Calendar d1 = Calendar.getInstance();
+			d1.setTime(dates[0]);
+			int year1 = d1.get(Calendar.YEAR);
+			Calendar d2 = Calendar.getInstance();
+			d2.setTime(dates[i]);
+			int year2 = d2.get(Calendar.YEAR);
+			
+			if (year2 < year1) {
+				// there is a problem with this date range
+				if (year2 < 10) {
+					// fix up based on single digit
+					int years = year1 % 10;
+					int diff = year2 - years;
+					d2.set(Calendar.YEAR, year1 + diff);
+					dates[i] = d2.getTime();
+				} else if (year2 < 100) {
+					// fix up based on double digit
+					int years = year1 % 100;
+					int diff = year2 - years;
+					d2.set(Calendar.YEAR, year1 + diff);
+					dates[i] = d2.getTime();
+				}
+			}
+		}
+		
+	}
+	
 	private void parseDate(int i) {
 		//dateStrModifier[i] = null;
 		
@@ -251,12 +290,16 @@ public class DateParserHelper {
 					"yyyy, MMMd", "yyyy, MMMMMd", "yyyy, MMM.d", "yyyyMMMd", "yyyyMMMMMd", "yyyy, MMM, d", "yyyy. MMM. d",
 					"yyyy MMM", "yyyy, MMM.", "yyyy MMMMM", "yyyy, MMMMM", "yyyy,MMMMM dd", "yyyy,MMM dd", "yyyy,MMM. dd"
 					);
+
+			parsePostprocess(i);
 			
-			handleModifiers(i);
+
 			updateOutputFormat();
 			parsed = true;
 			
 		} catch (ParseException e) {
+			//System.out.println("Error parsing date ");
+			//e.printStackTrace();
 			dates[i] = null;
 		}
 	}
