@@ -43,6 +43,10 @@ public class DateParserHelper {
 		runParser();
 	}
 	
+	public String getOriginalDate() {
+		return original;
+	}
+	
 	private void runParser() {
 		// Check for date range.  If so, parse separately
 		dateStringPreprocess();
@@ -90,43 +94,6 @@ public class DateParserHelper {
 		return dates;
 	}
 
-	/***
-	public String firstDate() {
-		return getOutputString(dates[0]);
-	}
-
-	public String secondDate() {
-		return getOutputString(dates[1]);
-	}
-
-	public String firstNotBeforeDate() {
-		return getOutputString(notBefore[0]);
-	}
-
-	public String secondNotBeforeDate() {
-		return getOutputString(notBefore[1]);
-	}
-
-	public String firstNotAfterDate() {
-		return getOutputString(notAfter[0]);
-	}
-
-	public String secondNotAfterDate() {
-		return getOutputString(notAfter[1]);
-	}
-	
-	public String getDate() {
-		return getOutputString(dates[0]);
-	}
-	
-	public String firstOriginalDate() {
-		return origDateStr[0];
-	}
-
-	public String secondOriginalDate() {
-		return origDateStr[1];
-	}
-	**/
 	
 	private void dateStringPreprocess() {
 		

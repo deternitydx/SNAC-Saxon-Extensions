@@ -14,15 +14,25 @@
  *
  *
  */
+import java.io.StringReader;
 import java.util.Arrays;
 import java.util.List;
+
+import javax.xml.transform.stream.StreamSource;
+
+import org.xml.sax.InputSource;
+
+import net.sf.saxon.s9api.DocumentBuilder;
+import net.sf.saxon.s9api.Processor;
+import net.sf.saxon.s9api.SaxonApiException;
+import net.sf.saxon.s9api.XdmNode;
 
 import edu.virginia.iath.snac.helpers.DateParserHelper;
 import edu.virginia.iath.snac.helpers.SNACDate;
 
 
 public class Test {
-	public static void main(String args[]) {
+	public static void main(String args[]) throws SaxonApiException {
 		/**
 		String test = "1983-12.3";
 		
@@ -31,19 +41,34 @@ public class Test {
 		System.out.println(Arrays.toString(strarr) + " " + strarr.length);
 		**/
 		
-		DateParserHelper dph = new DateParserHelper("1520-");
+		DateParserHelper dph = new DateParserHelper("1520-2156");
 		List<SNACDate> l = dph.getDates();
 		
+		String xml = "<results>";
 		for (SNACDate d : l) {
+			xml += "<date>\n";
+			xml += "<orig>" + d.getOriginalDate() + "</orig>\n";
+			xml += "<parse>" + d.getParsedDate() + "</parse>\n";
+			xml += "<notBefore>" + d.getNotBefore() + "</notBefore>\n";
+			xml += "<notAfter>" + d.getNotAfter() + "</notAfter>\n";
+			xml += "</date>\n";
 			System.out.println(d.getOriginalDate());
 			System.out.println(d.getParsedDate());
 			System.out.println(d.getNotBefore());
 			System.out.println(d.getNotAfter());
 			System.out.println(d.getType());
 		}
+		xml += "</results>";
 		
 		System.out.println(dph.wasParsed());
 		
+		
+		Processor proc = new Processor(false);
+        DocumentBuilder builder = proc.newDocumentBuilder();
+        
+        XdmNode xdm = builder.build(new StreamSource(new StringReader(xml)));
+        
+		System.out.println(xdm.toString());
 		
 	}
 }

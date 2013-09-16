@@ -16,8 +16,11 @@
  */
 package edu.virginia.iath.snac.functions;
 
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.xml.transform.stream.StreamSource;
 
 import edu.virginia.iath.snac.helpers.DateParserHelper;
 import edu.virginia.iath.snac.helpers.SNACDate;
@@ -28,8 +31,11 @@ import net.sf.saxon.lib.ExtensionFunctionDefinition;
 import net.sf.saxon.om.Sequence;
 import net.sf.saxon.om.StructuredQName;
 import net.sf.saxon.expr.XPathContext;
+import net.sf.saxon.s9api.DocumentBuilder;
+import net.sf.saxon.s9api.Processor;
 import net.sf.saxon.s9api.XdmAtomicValue;
 import net.sf.saxon.s9api.XdmItem;
+import net.sf.saxon.s9api.XdmNode;
 import net.sf.saxon.s9api.XdmValue;
 
 
@@ -126,6 +132,7 @@ public class DateParser extends ExtensionFunctionDefinition {
 		public Sequence call(XPathContext context, Sequence[] arguments)
 		{
 			Sequence seq = null;
+			String xml = "";
 			try
 			{
 				// Read in the argument into a string
@@ -145,11 +152,14 @@ public class DateParser extends ExtensionFunctionDefinition {
 				// which may be atomic values
 				List<XdmItem> outputs = new ArrayList<XdmItem>();
 				
+
 				
 				// Check to see if the values were parsed
 				if (parser.wasParsed()) {
 					
 					List<SNACDate> dates = parser.getDates();
+					
+					/** old way
 					
 					for (SNACDate date : dates) {
 						outputs.add(new XdmAtomicValue(date.getParsedDate()));
@@ -157,24 +167,64 @@ public class DateParser extends ExtensionFunctionDefinition {
 						outputs.add(new XdmAtomicValue(date.getNotBefore()));
 						outputs.add(new XdmAtomicValue(date.getNotAfter()));
 					}
+					**/
+					
+					// Build an XML object out of the results
+					xml = "<dateSet>";
+					for (SNACDate d : dates) {
+						if (d.getType() == SNACDate.FROM_DATE)
+							xml += "<dateRange>\n<fromDate";
+						else if (d.getType() == SNACDate.TO_DATE)
+							xml += "<toDate";
+						else
+							xml += "<date";
+						if (!d.getParsedDate().equals("null"))
+							xml += " standardDate=\"" + d.getParsedDate() + "\"";
+						if (!d.getNotBefore().equals("null"))
+							xml += " notBefore=\"" + d.getNotBefore() + "\"";
+						if (!d.getNotAfter().equals("null"))
+							xml += " notAfter=\"" + d.getNotAfter() + "\"";
+						xml += ">";
+						xml += d.getOriginalDate();
+						if (d.getType() == SNACDate.FROM_DATE)
+							xml += "</fromDate>\n";
+						else if (d.getType() == SNACDate.TO_DATE)
+							xml += "</toDate></dateRange>\n";
+						else
+							xml += "</date>\n";
+					}
+					xml += "</dateSet>";
+					
 					
 					
 				} else {
 					// nothing was parsed
-					outputs.add(new XdmAtomicValue("suspiciousDate"));
+					xml = "<dateSet>\n";
+					xml += "<date standardDate=\"suspiciousDate\">" + parser.getOriginalDate() + "</date>\n";
+					xml += "</dateSet>";
 				}
 				
-				// Convert the ArrayList into an XdmValue
-				XdmValue itm = new XdmValue(outputs);
-				// Get the Sequence from the XdmValue to return to Saxon
-				seq = itm.getUnderlyingValue();
+
 
 			}
 			catch (Exception sae)
 			{
 				// If something went wrong, then just return the value "unparseable" to Saxon.
-				seq = (new XdmAtomicValue("extraSuspiciousDate")).getUnderlyingValue();
+				// nothing was parsed
+				xml = "<dateSet>\n";
+				xml += "<date standardDate=\"suspiciousDate\">Java Error Occurred</date>\n";
+				xml += "</dateSet>";
 			}
+			
+
+			// Parse XML into an XdmNode
+			Processor proc = new Processor(false);
+	        DocumentBuilder builder = proc.newDocumentBuilder();
+	        
+	        try {
+	        	XdmNode xdm = builder.build(new StreamSource(new StringReader(xml)));
+	        	seq = xdm.getUnderlyingValue();
+	        } catch (Exception sae) {}
 
 			return seq;
 
