@@ -37,8 +37,10 @@
     <!-- Parse dates solely in Java.  Send the date parameter to the Java date-parser function, then parse the 1-2 outputs -->
     <xsl:template name="tpt_parse_date_java">
       <xsl:param name="date"/>
-      <dateSet> 
       <xsl:variable name="dates" select="saxext:date-parser($date)"/>
+      <dateSet>
+      <!-- <xsl:attribute name="entries" select="count($dates)"/>
+      <xsl:attribute name="returnVal" select="$dates"/> -->
       <xsl:choose>
         <xsl:when test="count($dates) = 1">
           <date>
@@ -90,6 +92,7 @@
         </xsl:when>
       </xsl:choose>
       </dateSet>
+  
     </xsl:template>
 
 
