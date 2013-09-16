@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import edu.virginia.iath.snac.helpers.DateParserHelper;
+import edu.virginia.iath.snac.helpers.SNACDate;
 
 //Saxon Imports
 import net.sf.saxon.lib.ExtensionFunctionCall;
@@ -147,19 +148,14 @@ public class DateParser extends ExtensionFunctionDefinition {
 				
 				// Check to see if the values were parsed
 				if (parser.wasParsed()) {
-
-					// Add the first parsed date (always here)
-					outputs.add(new XdmAtomicValue(parser.firstDate()));
-					outputs.add(new XdmAtomicValue(parser.firstOriginalDate()));
-					outputs.add(new XdmAtomicValue(parser.firstNotBeforeDate()));
-					outputs.add(new XdmAtomicValue(parser.firstNotAfterDate()));
 					
-					// If we have a range, then also add the second date to the list of values
-					if (parser.isRange()) {
-						outputs.add(new XdmAtomicValue(parser.secondDate()));
-						outputs.add(new XdmAtomicValue(parser.secondOriginalDate()));
-						outputs.add(new XdmAtomicValue(parser.secondNotBeforeDate()));
-						outputs.add(new XdmAtomicValue(parser.secondNotAfterDate()));
+					List<SNACDate> dates = parser.getDates();
+					
+					for (SNACDate date : dates) {
+						outputs.add(new XdmAtomicValue(date.getParsedDate()));
+						outputs.add(new XdmAtomicValue(date.getOriginalDate()));
+						outputs.add(new XdmAtomicValue(date.getNotBefore()));
+						outputs.add(new XdmAtomicValue(date.getNotAfter()));
 					}
 					
 					
@@ -177,7 +173,7 @@ public class DateParser extends ExtensionFunctionDefinition {
 			catch (Exception sae)
 			{
 				// If something went wrong, then just return the value "unparseable" to Saxon.
-				seq = (new XdmAtomicValue("suspiciousDate")).getUnderlyingValue();
+				seq = (new XdmAtomicValue("extraSuspiciousDate")).getUnderlyingValue();
 			}
 
 			return seq;
