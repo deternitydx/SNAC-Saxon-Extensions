@@ -102,26 +102,25 @@ public class DateParser extends ExtensionFunctionDefinition {
 		/**
 		 * Function call method.  This is what actually performs the action of the function call
 		 * 
-		 * The return value will always be a Sequence in one of the following specifications:
+		 * The function will return valid XML, consisting of:
 		 * 
-		 * Unable to parse:
-		 * 		suspiciousDate
+		 * <dateSet>
+		 * 		<date>...</date>
+		 * 		...
+		 * </dateSet>
 		 * 
-		 * One date:
-		 * 		standard date
-		 * 		original date
-		 * 		not before standard date (or "null")
-		 * 		not after standard date (or "null")
+		 * or
 		 * 
-		 * Date range (two dates)
-		 * 		first date standard date
-		 * 		first date original date
-		 * 		first date not before standard date (or "null")
-		 * 		first date not after standard date (or "null")
-		 * 		second date standard date
-		 * 		second date original date
-		 * 		second date not before standard date (or "null")
-		 * 		second date not after standard date (or "null")
+		 * <dateSet>
+		 * 	  <dateRange>
+		 * 		<fromDate>...</fromDate>
+		 * 		<toDate>...</toDate>
+		 * 	  </dateRange>
+		 * 	  ...
+		 * </dateSet>
+		 * 
+		 * or a combination of dates and dateRanges inside a dateSet.
+		 * 
 		 * 
 		 * @param XPathContext context the context of the call
 		 * @param Sequence[] arguments the arguments supplied to the call
@@ -139,35 +138,12 @@ public class DateParser extends ExtensionFunctionDefinition {
 				String dateStr = arguments[0].iterate().next().getStringValue();
 				DateParserHelper parser = new DateParserHelper(dateStr);
 				
-				/*
-				if (parser.isRange()) // there is a range
-					outStr = parser.firstDate() + " to " + parser.secondDate();
-				else				// no range, just one date
-					outStr = parser.getDate();
-				*/
-				
-
-				// Write the value out to a Sequence object:
-				// First, create a list of all objects to be returned.  Using an ArrayList to store the XdmItems,
-				// which may be atomic values
-				List<XdmItem> outputs = new ArrayList<XdmItem>();
-				
 
 				
 				// Check to see if the values were parsed
 				if (parser.wasParsed()) {
 					
 					List<SNACDate> dates = parser.getDates();
-					
-					/** old way
-					
-					for (SNACDate date : dates) {
-						outputs.add(new XdmAtomicValue(date.getParsedDate()));
-						outputs.add(new XdmAtomicValue(date.getOriginalDate()));
-						outputs.add(new XdmAtomicValue(date.getNotBefore()));
-						outputs.add(new XdmAtomicValue(date.getNotAfter()));
-					}
-					**/
 					
 					// Build an XML object out of the results
 					xml = "<dateSet>";

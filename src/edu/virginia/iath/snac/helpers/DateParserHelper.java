@@ -59,7 +59,12 @@ public class DateParserHelper {
 			dates.add(new SNACDate(original.substring(0, original.indexOf("through")).trim(), SNACDate.FROM_DATE));
 			dates.add(new SNACDate(original.substring(original.indexOf("through") + 7).trim(), SNACDate.TO_DATE));
 			
+		} else if (original.contains("and")) {
+			dates.add(new SNACDate(original.substring(0, original.indexOf("and")).trim()));
+			dates.add(new SNACDate(original.substring(original.indexOf("and") + 3).trim()));
+		
 		} else {
+		
 			dates.add(new SNACDate(original.trim()));
 		}
 		
