@@ -38,63 +38,10 @@
     <xsl:template name="tpt_parse_date_java">
       <xsl:param name="date"/>
       <xsl:variable name="dates" select="saxext:date-parser($date)"/>
-	<xsl:copy-of select="$dates"/>
-<!--
-      <dateSet>
-      <!- <xsl:attribute name="entries" select="count($dates)"/>
-      <xsl:attribute name="returnVal" select="$dates"/> ->
-      <xsl:choose>
-        <xsl:when test="count($dates) = 1">
-          <date>
-            <xsl:attribute name="standardDate" select="'suspiciousDate'"/>
-            <xsl:value-of select="$date"/>
-          </date>
-        </xsl:when>
-        <xsl:when test="count($dates) = 4">
-          <date>
-	    <xsl:if test="not(matches($dates[1], 'null'))">
-              <xsl:attribute name="standardDate" select="$dates[1]"/>
-	    </xsl:if>
-	    <xsl:if test="not(matches($dates[3], 'null'))">
-		<xsl:attribute name="notBefore" select="$dates[3]"/>
-	    </xsl:if>
-	    <xsl:if test="not(matches($dates[4], 'null'))">
-		<xsl:attribute name="notAfter" select="$dates[4]"/>
-	    </xsl:if>
-            <xsl:value-of select="$dates[2]"/>
-          </date>
-        </xsl:when>
-        <xsl:when test="count($dates) = 8">
-          <dateRange>
-            <fromDate>
-	      <xsl:if test="not(matches($dates[1], 'null'))">
-                <xsl:attribute name="standardDate" select="$dates[1]"/>
-	      </xsl:if>
-	      <xsl:if test="not(matches($dates[3], 'null'))">
-		<xsl:attribute name="notBefore" select="$dates[3]"/>
-	      </xsl:if>
-	      <xsl:if test="not(matches($dates[4], 'null'))">
-		<xsl:attribute name="notAfter" select="$dates[4]"/>
-	      </xsl:if>
-              <xsl:value-of select="$dates[2]"/>
-            </fromDate>
-            <toDate>
-	      <xsl:if test="not(matches($dates[5], 'null'))">
-                <xsl:attribute name="standardDate" select="$dates[5]"/>
-	      </xsl:if>
-	      <xsl:if test="not(matches($dates[7], 'null'))">
-		<xsl:attribute name="notBefore" select="$dates[7]"/>
-	      </xsl:if>
-	      <xsl:if test="not(matches($dates[8], 'null'))">
-		<xsl:attribute name="notAfter" select="$dates[8]"/>
-	      </xsl:if>
-              <xsl:value-of select="$dates[6]"/>
-            </toDate>
-          </dateRange>
-        </xsl:when>
-      </xsl:choose>
-      </dateSet>
-  -->
+	<dateSet>
+	<xsl:attribute name="originalDate" select="$date"/>
+	<xsl:copy-of select="$dates/dateSet/node()"/>
+	</dateSet>
     </xsl:template>
 
 
