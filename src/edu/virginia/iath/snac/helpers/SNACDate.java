@@ -16,6 +16,7 @@
  */
 package edu.virginia.iath.snac.helpers;
 
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -93,7 +94,8 @@ public class SNACDate {
 			return;
 		}
 		
-		switch(dateStr.split("[\\s.,-]+").length) {
+		//Lower case the string, split on "or" in case this is a range, then count the number of spaces.
+		switch(dateStr.toLowerCase().split("or")[0].trim().split("[\\s.,-]+").length) {
 			case 1:
 				outputFormat = "yyyy";
 				break;
@@ -110,18 +112,16 @@ public class SNACDate {
 	}
 	
 	public boolean parseDate() {
+		
 		try {
-			date = Calendar.getInstance();
-			
-			date.setTime(DateUtils.parseDate(dateStr.trim(),
-				"yyyy", "yyyy,", /*"yyyy-MM", "yyyy-M", "yyyy-M-d", "yyyy-M-dd", "yyyy-MM-d", "yyyy-MM-dd",*/ // standard dates
-				"MMMMM dd, yyyy", "MMM dd, yyyy", "MMM. d, yyyy", "MMM dd yyyy", "MMMMM dd, yyyy", "yyyy MMM dd", "yyyy MMM. dd",
-				"dd MMM, yyyy", "dd MMMMM, yyyy", "yyyy, MMM dd", "yyyy, MMMMM dd", "yyyy, MMM. dd",
-				"MMMMM yyyy", "MMM yyyy", "yyyy, MMM. d", "yyyy, MMMMM d", "yyyy, MMM", "yyyy, MMM.", "yyyy, MMMMM",
-				"yyyy, dd MMM.", "yyyy, dd MMMMM", "yyyy, dd MMM", "yyyy, MMM.dd", "yyyy,MMM.dd", "yyyy,MMM. dd",
-				"yyyy, MMMd", "yyyy, MMMMMd", "yyyy, MMM.d", "yyyyMMMd", "yyyyMMMMMd", "yyyy, MMM, d", "yyyy. MMM. d",
-				"yyyy MMM", "yyyy, MMM.", "yyyy MMMMM", "yyyy, MMMMM", "yyyy,MMMMM dd", "yyyy,MMM dd", "yyyy,MMM. dd"
-				));
+			// check for OR, which means parse only the date, but as notBefore/notAfter
+			if (dateStr.toLowerCase().contains("or")) {
+				notBefore = parseDate(dateStr.substring(0, dateStr.toLowerCase().indexOf("or")));
+				notAfter = parseDate(dateStr.substring(dateStr.toLowerCase().indexOf("or") + 2));
+				date = null;
+			} else {
+				date = parseDate(dateStr);
+			}
 			parsed = true;
 			return true;
 		} catch (Exception e) {
@@ -133,6 +133,22 @@ public class SNACDate {
 			return true;
 		}
 		return false;
+	}
+	
+	private Calendar parseDate(String str) throws ParseException {
+		Calendar date;
+		date = Calendar.getInstance();
+			
+		date.setTime(DateUtils.parseDate(str.trim(),
+				"yyyy", "yyyy,", /*"yyyy-MM", "yyyy-M", "yyyy-M-d", "yyyy-M-dd", "yyyy-MM-d", "yyyy-MM-dd",*/ // standard dates
+				"MMMMM dd, yyyy", "MMM dd, yyyy", "MMM. d, yyyy", "MMM dd yyyy", "MMMMM dd, yyyy", "yyyy MMM dd", "yyyy MMM. dd",
+				"dd MMM, yyyy", "dd MMMMM, yyyy", "yyyy, MMM dd", "yyyy, MMMMM dd", "yyyy, MMM. dd",
+				"MMMMM yyyy", "MMM yyyy", "yyyy, MMM. d", "yyyy, MMMMM d", "yyyy, MMM", "yyyy, MMM.", "yyyy, MMMMM",
+				"yyyy, dd MMM.", "yyyy, dd MMMMM", "yyyy, dd MMM", "yyyy, MMM.dd", "yyyy,MMM.dd", "yyyy,MMM. dd",
+				"yyyy, MMMd", "yyyy, MMMMMd", "yyyy, MMM.d", "yyyyMMMd", "yyyyMMMMMd", "yyyy, MMM, d", "yyyy. MMM. d",
+				"yyyy MMM", "yyyy, MMM.", "yyyy MMMMM", "yyyy, MMMMM", "yyyy,MMMMM dd", "yyyy,MMM dd", "yyyy,MMM. dd"
+				));
+		return date;
 	}
 	
 	public void handleModifiers() {

@@ -41,6 +41,7 @@ public class Test {
 		System.out.println(Arrays.toString(strarr) + " " + strarr.length);
 		**/
 		
+		/*
 		DateParserHelper dph = new DateParserHelper("1520-2156");
 		List<SNACDate> l = dph.getDates();
 		
@@ -69,6 +70,13 @@ public class Test {
         XdmNode xdm = builder.build(new StreamSource(new StringReader(xml)));
         
 		System.out.println(xdm.toString());
+		*/
+		
+		String hi = "1883- ";
+		String[] posibilities = hi.split("[ .]*,[ .]*");
+		System.out.println(Arrays.toString(hi.split("[-‐]|through")));
+		for (int i = 0; i < posibilities.length; i++)
+			System.out.println(posibilities[i].trim().matches("\\d{3}\\d*") || posibilities[i].trim().matches("[.]*\\d{3}\\d*[ .]*-[ .]*\\d{3}\\d*[.]*"));
 		
 	}
 }

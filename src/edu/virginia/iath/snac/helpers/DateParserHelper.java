@@ -51,22 +51,60 @@ public class DateParserHelper {
 		// Check for date range.  If so, parse separately
 		dateStringPreprocess();
 		
-		if (original.contains("-")) {
-			dates.add(new SNACDate(original.substring(0, original.indexOf("-")).trim(), SNACDate.FROM_DATE));
-			dates.add(new SNACDate(original.substring(original.indexOf("-") + 1).trim(), SNACDate.TO_DATE));
-			
-		} else if (original.contains("through")) {
-			dates.add(new SNACDate(original.substring(0, original.indexOf("through")).trim(), SNACDate.FROM_DATE));
-			dates.add(new SNACDate(original.substring(original.indexOf("through") + 7).trim(), SNACDate.TO_DATE));
-			
-		} else if (original.contains("and")) {
-			dates.add(new SNACDate(original.substring(0, original.indexOf("and")).trim()));
-			dates.add(new SNACDate(original.substring(original.indexOf("and") + 3).trim()));
-		
-		} else {
-		
-			dates.add(new SNACDate(original.trim()));
+		/**
+		 * Some important assumptions made in the processing stage
+		 * 
+		 * 1) commas take priority only when separating 4-digit years or 4-digit years with ranges
+		 * 2) "and"s take second priority, stating that there are multiple dates or date ranges
+		 * 3) "-"s and "through"s take next priority, denoting date ranges
+		 * 
+		 */
+		ArrayList<String> tokens = new ArrayList<String>();
+		ArrayList<String> tokens2 = new ArrayList<String>();
+		// Parse the string on Commas
+		String[] possibilities = original.split("[ .]*,[ .]*");
+		boolean allYears = true;
+		for (int i = 0; i < possibilities.length; i++) {
+			if (possibilities[i].trim().matches("\\d{3}\\d*") || possibilities[i].trim().matches("[.]*\\d{3}\\d*[ .]*[-‐][ .]*\\d{3}\\d*[.]*"))
+				tokens.add(possibilities[i]);
+			else {
+				allYears = false;
+				break;
+			}
 		}
+		// If the commas only separate years or ranges, then each of them may be added
+		if (!allYears) {
+			tokens.clear();
+			tokens.add(original);
+		}
+		
+		// For each token, split on "and", adding each new element to tokens2.  This should be fairly straightforward
+		for (String token : tokens) {
+			String[] indivs = token.trim().split("[ .]*and[ .]*");
+			for (int i = 0; i < indivs.length; i++)
+				tokens2.add(indivs[i]);
+		}
+		
+		// Reset the pointers
+		tokens.clear();
+		tokens = tokens2;
+		
+		// for each token, split on - and "through" and create a date for each
+		for (String token : tokens) {
+			// pad the token in case date ranges are empty, but exist
+			String tmp = " " + token + " ";
+			// split on common range indicators
+			String[] range = tmp.split("[-‐]|through");
+			
+			if (range.length > 1){
+				dates.add(new SNACDate(range[0].trim(), SNACDate.FROM_DATE));
+				dates.add(new SNACDate(range[1].trim(), SNACDate.TO_DATE));
+			} else {
+			
+				dates.add(new SNACDate(token.trim()));
+			}
+		}
+		
 		
 		for (SNACDate d : dates) {
 			// parse the dates found
