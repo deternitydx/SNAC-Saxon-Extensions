@@ -18,6 +18,8 @@ package edu.virginia.iath.snac.helpers;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Date parser for Java based on conventions used in SNAC.   Given a string, tries multiple parsings for a date,
@@ -97,8 +99,31 @@ public class DateParserHelper {
 			String[] range = tmp.split("[-‐]|through");
 			
 			if (range.length > 1){
-				dates.add(new SNACDate(range[0].trim(), SNACDate.FROM_DATE));
-				dates.add(new SNACDate(range[1].trim(), SNACDate.TO_DATE));
+				String supplement = "";
+				Pattern p = Pattern.compile("(\\d\\d\\d+)");
+				
+				// check to ensure there is a number somewhere in the to date
+				if (!range[0].matches(".*\\d.*") && !range[0].trim().isEmpty()) {
+					// If not, grab one from the to date, if possible
+					Matcher m = p.matcher(range[1]);
+					
+					if (m.find()) {
+						supplement += m.group(1) + " ";
+					}
+				}
+				dates.add(new SNACDate(supplement + range[0].trim(), SNACDate.FROM_DATE));
+				
+				// check to ensure there is a number somewhere in the to date
+				supplement = "";
+				if (!range[1].matches(".*\\d.*") && !range[1].trim().isEmpty()) {
+					// If not, grab one from the from date, if possible
+					Matcher m = p.matcher(range[0]);
+					
+					if (m.find()) {
+						supplement += m.group(1) + " ";
+					}
+				}
+				dates.add(new SNACDate(supplement + range[1].trim(), SNACDate.TO_DATE));
 			} else {
 			
 				dates.add(new SNACDate(token.trim()));
