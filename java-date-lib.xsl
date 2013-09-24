@@ -38,10 +38,20 @@
     <xsl:template name="tpt_parse_date_java">
       <xsl:param name="date"/>
       <xsl:variable name="dates" select="saxext:date-parser($date)"/>
-	<dateSet>
-	<xsl:attribute name="originalDate" select="$date"/>
-	<xsl:copy-of select="$dates/dateSet/node()"/>
-	</dateSet>
+			<xsl:choose>
+				<xsl:when test="count($dates/return/*) = 1">
+					<dateSet>
+						<xsl:attribute name="originalDate" select="$date"/>
+					<xsl:copy-of select="$dates/return/node()"/>
+					</dateSet>
+			  </xsl:when>
+				<xsl:when test="count($dates/return/*) > 1">
+					<dateSet>
+						<xsl:attribute name="originalDate" select="$date"/>
+						<xsl:copy-of select="$dates/return/node()"/>
+					</dateSet>
+				</xsl:when>
+			</xsl:choose>
     </xsl:template>
 
 
