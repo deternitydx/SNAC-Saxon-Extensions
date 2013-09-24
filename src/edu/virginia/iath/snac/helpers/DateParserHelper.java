@@ -82,11 +82,37 @@ public class DateParserHelper {
 		
 		// For each token, split on "and", adding each new element to tokens2.  This should be fairly straightforward
 		for (String token : tokens) {
-			String[] indivs = token.trim().split("[ .]*and[ .]*");
+			String[] indivs = token.trim().split("[ .]*and[ .]*|[ .]*&amp;[ .]*");
 			for (int i = 0; i < indivs.length; i++)
 				tokens2.add(indivs[i]);
 		}
 		
+		// Check each token for a year.  If one phrase is missing a year, but another has it, then copy it across
+		if (tokens2.size() > 1) {
+			for (int i = 0; i < tokens2.size(); i++) {
+				String supplement = "";
+				Pattern p = Pattern.compile("(\\d\\d\\d+)");
+				
+				// check to ensure there is a number somewhere in the from date
+				if (!tokens2.get(i).matches(".*\\d.*")) {
+					if (i == 0) { // look at the last element
+						Matcher m = p.matcher(tokens2.get(tokens2.size() - 1));
+						if (m.find()) {
+							supplement += m.group(1) + " ";
+						}
+					}
+					else { // look at the first element
+						Matcher m = p.matcher(tokens2.get(0));
+						if (m.find()) {
+							supplement += m.group(1) + " ";
+						}
+						
+					}
+				}
+				tokens2.set(i, supplement + tokens2.get(i));
+			}
+		}
+			
 		// Reset the pointers
 		tokens.clear();
 		tokens = tokens2;
@@ -96,13 +122,13 @@ public class DateParserHelper {
 			// pad the token in case date ranges are empty, but exist
 			String tmp = " " + token + " ";
 			// split on common range indicators
-			String[] range = tmp.split("[-‐]|through");
+			String[] range = tmp.split("[-‐–]|through");
 			
 			if (range.length > 1){
 				String supplement = "";
 				Pattern p = Pattern.compile("(\\d\\d\\d+)");
 				
-				// check to ensure there is a number somewhere in the to date
+				// check to ensure there is a number somewhere in the from date
 				if (!range[0].matches(".*\\d.*") && !range[0].trim().isEmpty()) {
 					// If not, grab one from the to date, if possible
 					Matcher m = p.matcher(range[1]);
@@ -166,11 +192,18 @@ public class DateParserHelper {
 	private void dateStringPreprocess() {
 		
 		// Handle dates surrounded with []
-		if (original.endsWith("]") && original.startsWith("["))
-			original = original.substring(1, original.length() -1);
+		if (original.endsWith("]"))
+				original = original.substring(0, original.length() -1);
+		if (original.startsWith("["))
+			original = original.substring(1, original.length());
 		// Handle dates surrounded with ()
-		if (original.endsWith(")") && original.startsWith("("))
-			original = original.substring(1, original.length() -1);
+		if (original.endsWith(")"))
+				original = original.substring(0, original.length() -1); 
+		if (original.startsWith("("))
+			original = original.substring(1, original.length());
+		
+		// Handle apostrophes that have been converted
+		original = original.replaceAll("&apos;", "'");
 		
 	}
 	
@@ -181,6 +214,7 @@ public class DateParserHelper {
 		 */
 		// Handle non-standard month representations
 		d.setString(d.getString().replace("Sept.", "Sep."));
+		d.setString(d.getString().replace("Sept ", "Sep "));
 		// Handle dates surrounded with []
 		if (d.getString().endsWith("]") && d.getString().startsWith("["))
 			d.setString(d.getString().substring(1, d.getString().length() -1));
@@ -190,19 +224,38 @@ public class DateParserHelper {
 		 * Handling actual date keywords such as circa, centuries, questions, etc
 		 */
 		// Look for and handle the circa/Circa/... keyword
-		if (d.getString().contains("circa") || d.getString().contains("Circa") || d.getString().contains("ca.")) {
+		if (d.getString().toLowerCase().matches(".*circa.*|.*ca\\..*|^c\\..*|.*\\sc\\..*")) {
+				//d.getString().contains("circa") || d.getString().contains("Circa") || d.getString().contains("ca.") || d.getString().contains("c.")) {
 			d.addModifier("circa");
 			
 			d.updateString("circa");
 			d.updateString("Circa");
 			d.updateString("ca.");
+			d.updateString("Ca.");
+			d.updateString("c.");
+			d.trimString();
 		}
 		
 		// Look for decades (s after the date)
-		if (d.getString().endsWith("s")) {
+		if (d.getString().matches(".*\\d\\d\\d+'*s.*")) {
 			d.addModifier("decade");
-			
-			d.setString(d.getString().substring(0,d.getString().length() -1));
+
+			d.setString(d.getString().replaceFirst("(?<=\\d)'*s", ""));
+			d.trimString();
+		}
+		
+		if (d.getString().matches("\\s*\\d\\d\\d\\?.*")) {
+			// Also a decade
+			d.addModifier("decade");
+			d.updateString("?", "0");
+			d.trimString();
+		}
+		
+		if (d.getString().matches("\\s*\\d\\d+x+.*")) {
+			// Also a decade
+			d.addModifier("decade");
+			d.updateString("x", "0");
+			d.trimString();
 		}
 		
 		// Look for fuzzy dates (some form of "[?]", "(?)", ...)
@@ -212,6 +265,7 @@ public class DateParserHelper {
 			d.updateString("[?]", "");
 			d.updateString("(?)", "");
 			d.updateString("?", "");
+			d.trimString();
 		}
 		
 		// Look for seasons

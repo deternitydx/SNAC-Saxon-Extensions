@@ -40,41 +40,60 @@ public class Test {
 		
 		System.out.println(Arrays.toString(strarr) + " " + strarr.length);
 		**/
-		
-		/*
-		DateParserHelper dph = new DateParserHelper("1520-2156");
-		List<SNACDate> l = dph.getDates();
-		
-		String xml = "<results>";
-		for (SNACDate d : l) {
-			xml += "<date>\n";
-			xml += "<orig>" + d.getOriginalDate() + "</orig>\n";
-			xml += "<parse>" + d.getParsedDate() + "</parse>\n";
-			xml += "<notBefore>" + d.getNotBefore() + "</notBefore>\n";
-			xml += "<notAfter>" + d.getNotAfter() + "</notAfter>\n";
-			xml += "</date>\n";
-			System.out.println(d.getOriginalDate());
-			System.out.println(d.getParsedDate());
-			System.out.println(d.getNotBefore());
-			System.out.println(d.getNotAfter());
-			System.out.println(d.getType());
+		String xml = "";
+
+		DateParserHelper dph = new DateParserHelper("[1910s]-1942");
+
+		if (dph.wasParsed()) {
+			List<SNACDate> dates = dph.getDates();
+
+			// Build an XML object out of the results
+			xml = "<return>";
+			for (SNACDate d : dates) {
+				if (d.getType() == SNACDate.FROM_DATE)
+					xml += "<dateRange>\n<fromDate";
+				else if (d.getType() == SNACDate.TO_DATE)
+					xml += "<toDate";
+				else
+					xml += "<date";
+				if (!d.getParsedDate().equals("null"))
+					xml += " standardDate=\"" + d.getParsedDate() + "\"";
+				if (!d.getNotBefore().equals("null"))
+					xml += " notBefore=\"" + d.getNotBefore() + "\"";
+				if (!d.getNotAfter().equals("null"))
+					xml += " notAfter=\"" + d.getNotAfter() + "\"";
+				xml += ">";
+				xml += d.getOriginalDate();
+				if (d.getType() == SNACDate.FROM_DATE)
+					xml += "</fromDate>\n";
+				else if (d.getType() == SNACDate.TO_DATE)
+					xml += "</toDate></dateRange>\n";
+				else
+					xml += "</date>\n";
+			}
+			xml += "</return>";
+
+		} else {
+			// nothing was parsed
+			xml = "<return>\n";
+			xml += "<date standardDate=\"suspiciousDate\">" + dph.getOriginalDate() + "</date>\n";
+			xml += "</return>";
 		}
-		xml += "</results>";
-		
+
 		System.out.println(dph.wasParsed());
-		
-		
+
+
 		Processor proc = new Processor(false);
-        DocumentBuilder builder = proc.newDocumentBuilder();
-        
-        XdmNode xdm = builder.build(new StreamSource(new StringReader(xml)));
-        
+		DocumentBuilder builder = proc.newDocumentBuilder();
+
+		XdmNode xdm = builder.build(new StreamSource(new StringReader(xml)));
+
 		System.out.println(xdm.toString());
-		*/
-		
-		String hi = "1883- ";
+
+
+		String hi = "March &amp; April 1954";
 		String[] posibilities = hi.split("[ .]*,[ .]*");
-		System.out.println(Arrays.toString(hi.split("[-‐]|through")));
+		System.out.println(Arrays.toString(hi.trim().split("[ .]*and[ .]*|[ .]*&amp;[ .]*")));
 		for (int i = 0; i < posibilities.length; i++)
 			System.out.println(posibilities[i].trim().matches("\\d{3}\\d*") || posibilities[i].trim().matches("[.]*\\d{3}\\d*[ .]*-[ .]*\\d{3}\\d*[.]*"));
 		

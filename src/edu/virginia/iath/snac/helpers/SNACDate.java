@@ -62,12 +62,14 @@ public class SNACDate {
 		origDateStr = dateStr = date;
 		dateStrModifier = new ArrayList<String>();
 		type = 0;
+		//trimString();
 	}
 	
 	public SNACDate(String date, int t) {
 		origDateStr = dateStr = date;
 		dateStrModifier = new ArrayList<String>();
 		type = t;
+		//trimString();
 	}
 	
 	public boolean isRange() {
@@ -75,7 +77,7 @@ public class SNACDate {
 	}
 	
 	public boolean isToDate() {
-		return type == this.TO_DATE;
+		return type == SNACDate.TO_DATE;
 	}
 	
 	public boolean wasParsed() {
@@ -141,12 +143,14 @@ public class SNACDate {
 			
 		date.setTime(DateUtils.parseDate(str.trim(),
 				"yyyy", "yyyy,", /*"yyyy-MM", "yyyy-M", "yyyy-M-d", "yyyy-M-dd", "yyyy-MM-d", "yyyy-MM-dd",*/ // standard dates
-				"MMMMM dd, yyyy", "MMM dd, yyyy", "MMM. d, yyyy", "MMM dd yyyy", "MMMMM dd, yyyy", "yyyy MMM dd", "yyyy MMM. dd",
-				"dd MMM, yyyy", "dd MMMMM, yyyy", "yyyy, MMM dd", "yyyy, MMMMM dd", "yyyy, MMM. dd",
-				"MMMMM yyyy", "MMM yyyy", "yyyy, MMM. d", "yyyy, MMMMM d", "yyyy, MMM", "yyyy, MMM.", "yyyy, MMMMM",
+				"MMMMM dd, yyyy", "MMM dd, yyyy", "MMM. d, yyyy", "MMM dd yyyy", "MMM dd,yyyy", "MMMdd, yyyy",
+				"MMMMM dd, yyyy", "yyyy MMM dd", "yyyy MMM. dd", "dd MMM, yyyy", "dd MMMMM, yyyy", "yyyy, MMM dd",
+				"yyyy, MMMMM dd", "yyyy, MMM. dd", "MMM. yyyy", "MMMMM yyyy", "MMMMM, yyyy", "MMM yyyy", 
+				"MMM, yyyy", "yyyy, MMM. d", "yyyy, MMMMM d", "yyyy, MMM", "yyyy, MMM.", "yyyy, MMMMM",
 				"yyyy, dd MMM.", "yyyy, dd MMMMM", "yyyy, dd MMM", "yyyy, MMM.dd", "yyyy,MMM.dd", "yyyy,MMM. dd",
 				"yyyy, MMMd", "yyyy, MMMMMd", "yyyy, MMM.d", "yyyyMMMd", "yyyyMMMMMd", "yyyy, MMM, d", "yyyy. MMM. d",
-				"yyyy MMM", "yyyy, MMM.", "yyyy MMMMM", "yyyy, MMMMM", "yyyy,MMMMM dd", "yyyy,MMM dd", "yyyy,MMM. dd"
+				"yyyy MMM", "yyyy, MMM.", "yyyy MMMMM", "yyyy, MMMMM", "yyyy,MMMMM dd", "yyyy,MMM dd", "yyyy,MMM. dd",
+				"yyyy. MMM", "yyyy. MMM.", "yyyy. MMMMM", "yyyy. MMM d", "yyyy. MMMMM d", "yyyy. MMM. d"
 				));
 		return date;
 	}
@@ -241,12 +245,10 @@ public class SNACDate {
 	}
 
 	public String getString() {
-		// TODO Auto-generated method stub
 		return dateStr;
 	}
 
 	public void setString(String replace) {
-		// TODO Auto-generated method stub
 		dateStr = replace;
 	}
 	
@@ -256,10 +258,11 @@ public class SNACDate {
 	
 	public void updateString(String find, String replace) {
 		dateStr = dateStr.replace(find, replace);
+		//trimString();
 	}
 	
 	public void updateString(String find) {
-		dateStr = dateStr.replace(find, "");
+		updateString(find, "");
 	}
 	
 	public void trimString() {
@@ -271,6 +274,8 @@ public class SNACDate {
 			dateStr = dateStr.substring(0, dateStr.length() -1);
 		dateStr = dateStr.replace("(", "");
 		dateStr = dateStr.replace(")", "");
+		dateStr = dateStr.replace("[", "");
+		dateStr = dateStr.replace("]", "");
 		dateStr = dateStr.replace("'", "");
 		dateStr = dateStr.replace(":", "");
 		dateStr = dateStr.replace("  ", " ");
@@ -299,7 +304,7 @@ public class SNACDate {
 	
 	@Override
 	public String toString() {
-		return "{" + getParsedDate() + " (" + getNotBefore() + "--" + getNotAfter() + ")}";
+		return "{" + getString() + ": " + getParsedDate() + " (" + getNotBefore() + "--" + getNotAfter() + ") "+ dateStrModifier+ "}";
 	}
 	
 	public String getParsedDate() {

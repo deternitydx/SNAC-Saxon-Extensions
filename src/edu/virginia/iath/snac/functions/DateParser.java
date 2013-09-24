@@ -17,10 +17,11 @@
 package edu.virginia.iath.snac.functions;
 
 import java.io.StringReader;
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.transform.stream.StreamSource;
+
+import org.apache.commons.lang3.StringEscapeUtils;
 
 import edu.virginia.iath.snac.helpers.DateParserHelper;
 import edu.virginia.iath.snac.helpers.SNACDate;
@@ -33,10 +34,8 @@ import net.sf.saxon.om.StructuredQName;
 import net.sf.saxon.expr.XPathContext;
 import net.sf.saxon.s9api.DocumentBuilder;
 import net.sf.saxon.s9api.Processor;
-import net.sf.saxon.s9api.XdmAtomicValue;
-import net.sf.saxon.s9api.XdmItem;
 import net.sf.saxon.s9api.XdmNode;
-import net.sf.saxon.s9api.XdmValue;
+import net.sf.saxon.trans.XPathException;
 
 
 /**
@@ -104,20 +103,20 @@ public class DateParser extends ExtensionFunctionDefinition {
 		 * 
 		 * The function will return valid XML, consisting of:
 		 * 
-		 * <dateSet>
+		 * <return>
 		 * 		<date>...</date>
 		 * 		...
-		 * </dateSet>
+		 * </return>
 		 * 
 		 * or
 		 * 
-		 * <dateSet>
+		 * <return>
 		 * 	  <dateRange>
 		 * 		<fromDate>...</fromDate>
 		 * 		<toDate>...</toDate>
 		 * 	  </dateRange>
 		 * 	  ...
-		 * </dateSet>
+		 * </return>
 		 * 
 		 * or a combination of dates and dateRanges inside a dateSet.
 		 * 
@@ -132,13 +131,23 @@ public class DateParser extends ExtensionFunctionDefinition {
 		{
 			Sequence seq = null;
 			String xml = "";
+			
+			// Read in the argument into a string
+			String dateStr = null;
+			try {
+				dateStr = arguments[0].iterate().next().getStringValue();
+			} catch (XPathException e) {
+				dateStr = "";
+			}
+			
 			try
 			{
-				// Read in the argument into a string
-				String dateStr = arguments[0].iterate().next().getStringValue();
+				// Saxon is WONDERFUL and removes escaped characters, so we must re-escape them
+				dateStr = StringEscapeUtils.escapeXml(dateStr);
+				
 				DateParserHelper parser = new DateParserHelper(dateStr);
 				
-
+				
 				
 				// Check to see if the values were parsed
 				if (parser.wasParsed()) {
@@ -146,7 +155,7 @@ public class DateParser extends ExtensionFunctionDefinition {
 					List<SNACDate> dates = parser.getDates();
 					
 					// Build an XML object out of the results
-					xml = "<dateSet>";
+					xml = "<return>";
 					for (SNACDate d : dates) {
 						if (d.getType() == SNACDate.FROM_DATE)
 							xml += "<dateRange>\n<fromDate";
@@ -169,15 +178,15 @@ public class DateParser extends ExtensionFunctionDefinition {
 						else
 							xml += "</date>\n";
 					}
-					xml += "</dateSet>";
+					xml += "</return>";
 					
 					
 					
 				} else {
 					// nothing was parsed
-					xml = "<dateSet>\n";
-					xml += "<date standardDate=\"suspiciousDate\">" + parser.getOriginalDate() + "</date>\n";
-					xml += "</dateSet>";
+					xml = "<return>\n";
+					xml += "<date standardDate=\"suspiciousDate\" info=\"nothing parsable\">" + parser.getOriginalDate() +"</date>\n";
+					xml += "</return>";
 				}
 				
 
@@ -187,9 +196,9 @@ public class DateParser extends ExtensionFunctionDefinition {
 			{
 				// If something went wrong, then just return the value "unparseable" to Saxon.
 				// nothing was parsed
-				xml = "<dateSet>\n";
-				xml += "<date standardDate=\"suspiciousDate\">Java Error Occurred</date>\n";
-				xml += "</dateSet>";
+				xml = "<return>\n";
+				xml += "<date standardDate=\"suspiciousDate\" info=\"exception\">"+ dateStr + "</date>\n";
+				xml += "</return>";
 			}
 			
 
