@@ -131,6 +131,7 @@ public class DateParser extends ExtensionFunctionDefinition {
 		{
 			Sequence seq = null;
 			String xml = "";
+			String suspiciousDate = "http://socialarchive.iath.virginia.edu/control/term#SuspiciousDate";
 			
 			// Read in the argument into a string
 			String dateStr = null;
@@ -185,7 +186,7 @@ public class DateParser extends ExtensionFunctionDefinition {
 				} else {
 					// nothing was parsed
 					xml = "<return>\n";
-					xml += "<date standardDate=\"suspiciousDate\" info=\"nothing parsable\">" + parser.getOriginalDate() +"</date>\n";
+					xml += "<date localType=\"" + suspiciousDate + "\">" + parser.getOriginalDate() +"</date>\n";
 					xml += "</return>";
 				}
 				
@@ -197,7 +198,7 @@ public class DateParser extends ExtensionFunctionDefinition {
 				// If something went wrong, then just return the value "unparseable" to Saxon.
 				// nothing was parsed
 				xml = "<return>\n";
-				xml += "<date standardDate=\"suspiciousDate\" info=\"exception\">"+ dateStr + "</date>\n";
+				xml += "<date localType=\"" + suspiciousDate + "\">"+ dateStr + "</date>\n";
 				xml += "</return>";
 			}
 			

@@ -50,7 +50,6 @@ public class DateParserHelper {
 	}
 	
 	private void runParser() {
-		// Check for date range.  If so, parse separately
 		dateStringPreprocess();
 		
 		/**
@@ -190,18 +189,6 @@ public class DateParserHelper {
 
 	
 	private void dateStringPreprocess() {
-		
-		// Handle dates surrounded with []
-		if (original.endsWith("]"))
-				original = original.substring(0, original.length() -1);
-		if (original.startsWith("["))
-			original = original.substring(1, original.length());
-		// Handle dates surrounded with ()
-		if (original.endsWith(")"))
-				original = original.substring(0, original.length() -1); 
-		if (original.startsWith("("))
-			original = original.substring(1, original.length());
-		
 		// Handle apostrophes that have been converted
 		original = original.replaceAll("&apos;", "'");
 		
@@ -219,13 +206,22 @@ public class DateParserHelper {
 		if (d.getString().endsWith("]") && d.getString().startsWith("["))
 			d.setString(d.getString().substring(1, d.getString().length() -1));
 		
+		/**
+		 * Remove extra identifiers that don't mean anything in the parsing
+		 */
+		if (d.getString().matches(".*N\\.\\s*S\\..*|.*O\\.\\s*S\\..*")) {
+			d.updateString("N. S.");
+			d.updateString("N.S.");
+			d.updateString("O.S.");
+			d.updateString("O. S.");
+		}
+		
 	
 		/**
 		 * Handling actual date keywords such as circa, centuries, questions, etc
 		 */
 		// Look for and handle the circa/Circa/... keyword
 		if (d.getString().toLowerCase().matches(".*circa.*|.*ca\\..*|^c\\..*|.*\\sc\\..*")) {
-				//d.getString().contains("circa") || d.getString().contains("Circa") || d.getString().contains("ca.") || d.getString().contains("c.")) {
 			d.addModifier("circa");
 			
 			d.updateString("circa");
