@@ -1,3 +1,3 @@
 #!/bin/bash
-export CLASSPATH=$HOME/saxon/saxon9he.jar:$HOME/javarepo/commons-lang3-3.1/commons-lang3-3.1.jar:$HOME/snac_utils/java/bin:$CLASSPATH
+export CLASSPATH=$HOME/saxon/saxon9he.jar:$HOME/jars/*.jar:$CLASSPATH
 java edu.virginia.iath.snac.SnacTransform ${1+"$@"}
