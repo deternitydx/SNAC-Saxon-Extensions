@@ -61,15 +61,13 @@ public class SNACDate {
 	public SNACDate(String date) {
 		origDateStr = dateStr = date;
 		dateStrModifier = new ArrayList<String>();
-		type = 0;
-		//trimString();
+		type = SNACDate.STANDALONE;
 	}
 	
 	public SNACDate(String date, int t) {
 		origDateStr = dateStr = date;
 		dateStrModifier = new ArrayList<String>();
 		type = t;
-		//trimString();
 	}
 	
 	public boolean isRange() {
@@ -224,8 +222,8 @@ public class SNACDate {
 		
 		// Note: Java is WEIRD:  0 = JANUARY, 1 = FEBRUARY, ...
 		if (season.equals("winter")) {
-			seasonDates[0].set(year, Calendar.DECEMBER, 21);
-			seasonDates[1].set(year + 1, Calendar.MARCH, 19);
+			seasonDates[0].set(year - 1, Calendar.DECEMBER, 21);
+			seasonDates[1].set(year, Calendar.MARCH, 19);
 			
 		} else if (season.equals("spring")) {
 			seasonDates[0].set(year, Calendar.MARCH, 20);
@@ -258,7 +256,6 @@ public class SNACDate {
 	
 	public void updateString(String find, String replace) {
 		dateStr = dateStr.replace(find, replace);
-		//trimString();
 	}
 	
 	public void updateString(String find) {

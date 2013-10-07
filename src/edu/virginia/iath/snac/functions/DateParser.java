@@ -118,7 +118,7 @@ public class DateParser extends ExtensionFunctionDefinition {
 		 * 	  ...
 		 * </return>
 		 * 
-		 * or a combination of dates and dateRanges inside a dateSet.
+		 * or a combination of dates and dateRanges inside a return.
 		 * 
 		 * 
 		 * @param XPathContext context the context of the call
@@ -144,11 +144,10 @@ public class DateParser extends ExtensionFunctionDefinition {
 			try
 			{
 				// Saxon is WONDERFUL and removes escaped characters, so we must re-escape them
+				// Using the Apache Commons Lang's org.apache.commons.lang3.StringEscapeUtils
 				dateStr = StringEscapeUtils.escapeXml(dateStr);
 				
 				DateParserHelper parser = new DateParserHelper(dateStr);
-				
-				
 				
 				// Check to see if the values were parsed
 				if (parser.wasParsed()) {
@@ -158,20 +157,29 @@ public class DateParser extends ExtensionFunctionDefinition {
 					// Build an XML object out of the results
 					xml = "<return>";
 					for (SNACDate d : dates) {
+						// Open the tags
 						if (d.getType() == SNACDate.FROM_DATE)
 							xml += "<dateRange>\n<fromDate";
 						else if (d.getType() == SNACDate.TO_DATE)
 							xml += "<toDate";
 						else
 							xml += "<date";
+						
+						// Add the dates to the XML
 						if (!d.getParsedDate().equals("null"))
 							xml += " standardDate=\"" + d.getParsedDate() + "\"";
 						if (!d.getNotBefore().equals("null"))
 							xml += " notBefore=\"" + d.getNotBefore() + "\"";
 						if (!d.getNotAfter().equals("null"))
 							xml += " notAfter=\"" + d.getNotAfter() + "\"";
+						
+						// Close the open tags
 						xml += ">";
+						
+						// Add the original date passed to Java
 						xml += d.getOriginalDate();
+						
+						// Close the tags
 						if (d.getType() == SNACDate.FROM_DATE)
 							xml += "</fromDate>\n";
 						else if (d.getType() == SNACDate.TO_DATE)
