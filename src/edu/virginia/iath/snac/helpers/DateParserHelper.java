@@ -59,6 +59,8 @@ public class DateParserHelper {
 		 * 2) "and"s take second priority, stating that there are multiple dates or date ranges
 		 * 3) "-"s and "through"s take next priority, denoting date ranges
 		 * 
+		 * Since New Style and Old Style are ambiguous (Julian vs Gregorian vs ??), we'll ignore them completely
+		 * 
 		 */
 		ArrayList<String> tokens = new ArrayList<String>();
 		ArrayList<String> tokens2 = new ArrayList<String>();
@@ -206,16 +208,6 @@ public class DateParserHelper {
 		if (d.getString().endsWith("]") && d.getString().startsWith("["))
 			d.setString(d.getString().substring(1, d.getString().length() -1));
 		
-		/**
-		 * Remove extra identifiers that don't mean anything in the parsing
-		 */
-		if (d.getString().matches(".*N\\.\\s*S\\..*|.*O\\.\\s*S\\..*")) {
-			d.updateString("N. S.");
-			d.updateString("N.S.");
-			d.updateString("O.S.");
-			d.updateString("O. S.");
-		}
-		
 	
 		/**
 		 * Handling actual date keywords such as circa, centuries, questions, etc
@@ -261,6 +253,15 @@ public class DateParserHelper {
 			d.updateString("[?]", "");
 			d.updateString("(?)", "");
 			d.updateString("?", "");
+			d.trimString();
+		}
+
+		// Treat "About" as fuzzy as well
+		if (d.getString().toLowerCase().contains("about")) {
+			d.addModifier("fuzzy");
+			
+			d.updateString("About");
+			d.updateString("about");
 			d.trimString();
 		}
 		
