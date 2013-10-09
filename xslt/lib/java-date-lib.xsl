@@ -35,15 +35,12 @@
     -->
 
     <!-- Parse dates solely in Java.  Send the date parameter to the Java date-parser function, then parse the 1-2 outputs -->
-    <xsl:template name="tpt_parse_date_java">
+    <xsl:template name="tpt_parse_date">
       <xsl:param name="date"/>
       <xsl:variable name="dates" select="saxext:date-parser($date)"/>
 			<xsl:choose>
 				<xsl:when test="count($dates/return/*) = 1">
-					<dateSet>
-						<xsl:attribute name="originalDate" select="$date"/>
 					<xsl:copy-of select="$dates/return/node()"/>
-					</dateSet>
 			  </xsl:when>
 				<xsl:when test="count($dates/return/*) > 1">
 					<dateSet>
@@ -52,43 +49,6 @@
 					</dateSet>
 				</xsl:when>
 			</xsl:choose>
-    </xsl:template>
-
-
-    <!-- Split the date in XSLT using regular expressions, then send each portion individually to the
-         Java date-parser fucntion.  Each portion is handled separately. -->
-    <xsl:template name="tpt_parse_date_java_xsl">
-      <xsl:param name="date"/>
-
-      <xsl:variable name="dates">
-        <xsl:analyze-string select="."
-                            regex="([^-]+)">
-          <xsl:matching-substring>
-            <date>
-              <xsl:attribute name="standardDate" select="saxext:date-parser(.)"/>
-              <xsl:value-of select="."/>
-            </date>
-          </xsl:matching-substring>
-        </xsl:analyze-string>
-      </xsl:variable>
-      <xsl:variable name="numDates" select="count($dates/*)"/>
-      <xsl:choose>
-        <xsl:when test="$numDates = 1">
-          <xsl:copy-of select="$dates"/>
-        </xsl:when> 
-        <xsl:when test="$numDates = 2">
-          <dateRange>
-            <fromDate>
-              <xsl:attribute name="standardDate" select="($dates/date)[1]/@standardDate"/>
-              <xsl:value-of select="($dates/date)[1]"/>
-            </fromDate>
-            <toDate>
-              <xsl:attribute name="standardDate" select="($dates/date)[2]/@standardDate"/>
-              <xsl:value-of select="($dates/date)[2]"/>
-            </toDate>
-          </dateRange>
-        </xsl:when>
-      </xsl:choose>
     </xsl:template>
 
 </xsl:stylesheet>
