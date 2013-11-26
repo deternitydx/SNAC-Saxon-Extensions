@@ -80,7 +80,7 @@ public class GeoNamesCheshire extends ExtensionFunctionDefinition {
 	{
 		return new net.sf.saxon.value.SequenceType[] {
 				net.sf.saxon.value.SequenceType.SINGLE_STRING	// First and only parameter is a single string
-			};
+		};
 	}
 
 	/**
@@ -142,7 +142,7 @@ public class GeoNamesCheshire extends ExtensionFunctionDefinition {
 			Sequence seq = null;
 			String xml = "";
 			String result = "";
-			
+
 			// Read in the argument into a string
 			String locationStr = null;
 			try {
@@ -150,87 +150,115 @@ public class GeoNamesCheshire extends ExtensionFunctionDefinition {
 			} catch (XPathException e) {
 				locationStr = "";
 			}
-			
+
 			try
 			{
 
-			    Socket cheshire = new Socket("localhost", 12345);
-			    PrintWriter out =
-			        new PrintWriter(cheshire.getOutputStream(), true);
-			    BufferedReader in =
-			        new BufferedReader(
-			            new InputStreamReader(cheshire.getInputStream()));
-			    
-			    // Init cheshire
-			    out.println("init");
-			    System.err.println(in.readLine());
-			    
+				Socket cheshire = new Socket("localhost", 12345);
+				PrintWriter out =
+						new PrintWriter(cheshire.getOutputStream(), true);
+				BufferedReader in =
+						new BufferedReader(
+								new InputStreamReader(cheshire.getInputStream()));
+
+				// Init cheshire
+				out.println("init");
+				System.err.println(in.readLine());
+
 				// Saxon is WONDERFUL and removes escaped characters, so we must re-escape them
 				// Using the Apache Commons Lang's org.apache.commons.lang3.StringEscapeUtils
 				locationStr = StringEscapeUtils.escapeXml(locationStr);
 				//Normalize the string
 				locationStr = locationStr.toLowerCase().replaceAll("\\.", "");
-				
+
 				// Check to see if we have a country!
 				Map<String, String> countries = new HashMap<String, String>();
 				for (String iso : Locale.getISOCountries()) {
-				     Locale l = new Locale("", iso);
-				     countries.put(l.getDisplayCountry().toLowerCase(), iso);
+					Locale l = new Locale("", iso);
+					countries.put(l.getDisplayCountry().toLowerCase(), iso);
 				}
 				if (countries.containsKey(locationStr)) { // we have a country!
 					// Do a simple country look up
 
-				    out.println("find xcountry @ \"" + countries.get(locationStr) + "\" and xintlname @ \"" + locationStr +"\"");
-				    System.err.println("Searched for country code: " + countries.get(locationStr) + " and country: " + locationStr);
-				    String info = in.readLine();
-				    System.err.println(info);
+					out.println("find xcountry @ \"" + countries.get(locationStr) + "\" and xintlname @ \"" + locationStr +"\"");
+					System.err.println("Searched for country code: " + countries.get(locationStr) + " and country:sd " + locationStr);
+					String info = in.readLine();
+					System.err.println(info);
 				} else { // no country, do more in-depth queries
-				
+
 					String first = locationStr;
 					String second = locationStr;
-				if (locationStr.contains(",")) {
-					first = locationStr.substring(0, locationStr.indexOf(","));
-					second = locationStr.substring(locationStr.indexOf(","), locationStr.length() -1);
-				}
-				
-			    
-			    // Query cheshire
-			    out.println("find ngram_wadmin \"" + locationStr + "\" and exactname @ \"" + first + "\" and admin1 @ \"" + second + "\"");
-			    String info = in.readLine();
-			    System.err.println(info);
-			    if (info.contains(" 0")) {
-			    	// no results, so try a different query
-			    	out.println("find ngram_wadmin \"" + locationStr + "\" and name_wadmin @ \"" + locationStr + "\"");
-			    	info = in.readLine();
-			    	System.err.println(info);
-			    	if (info.contains(" 0")) {
-			    		// no results again, try a different query
-			    		out.println("find ngram_wadmin \"" + locationStr + "\" and name @ \"" + first + "\"");
-			    		info = in.readLine();
-				    	System.err.println(info);
-			    	}
-			    	
-			    }
+					if (locationStr.contains(",")) {
+						first = locationStr.substring(0, locationStr.indexOf(","));
+						second = locationStr.substring(locationStr.indexOf(","), locationStr.length());
+					}
+
+					System.err.println("Searching for: " + locationStr + " as 1." + first + "; 2." + second);
+					// Query cheshire
+
+					// Do exact query first
+					out.println("find exactname @ \"" + first + "\" and admin1 @ \"" + second + "\"");
+					String info = in.readLine();
+					System.err.println(info);
+					if (info.contains(" 0")) {
+
+						// Next, try a ranking name query by keyword
+						out.println("find name @ \"" + first + "\" and admin1 @ \"" + second + "\"");
+						info = in.readLine();
+						System.err.println(info);
+						if (info.contains(" 0")) {
+
+							// TODO: Should in here try:
+							// 1. find ngram_name_wadmin and exactname (find the exact name but with ngrams for the admin code)
+							// 2. find ngram_name_wadmin and admin1 search (no alternate names)
+
+							// (1 above) Next, try a query on just ngrams in the name/admin code plus ranking of exact name (for bad state names)
+							out.println("find ngram_name_wadmin \"" + locationStr + "\" and exactname @ \"" + first + "\"");
+							info = in.readLine();
+							System.err.println(info);
+							if (info.contains(" 0")) { 
+
+								// Next, try a looking for matching ngrams
+								out.println("find ngram_wadmin \"" + locationStr + "\" and name_wadmin @ \"" + locationStr + "\"");
+								info = in.readLine();
+								System.err.println(info);
+								if (info.contains(" 0")) {
+									// Next, try looking for just ngrams and keyword name
+									out.println("find ngram_wadmin \"" + locationStr + "\" and name @ \"" + first + "\"");
+									info = in.readLine();
+									System.err.println(info);
+
+									if (info.contains(" 0")) {
+										// Finally, just check ngrams
+										out.println("find ngram_wadmin \"" + locationStr + "\"");
+										info = in.readLine();
+										System.err.println(info);
+									}
+								}
+							}
+						}
+
+					}
 				} // end else
-			    
-			    // Ask for the top entry
-			    out.println("display default 1 1");
-			    in.skip(17);
-			    while (in.ready()) {
-			    	result += in.readLine();
-			    }
-			    
-			    // close cheshire
-			    out.println("close");
-			    
-			    // cleanup the result
-			    result = result.substring(0, result.length()-1);
-				
-					// Build an XML object out of the results
-					xml = "<return original=\""+locationStr+"\">";
-					xml += "<![CDATA[" + result + "]]>";
-					xml += "</return>";
-					
+
+				// Ask for the top entry
+				out.println("display default 1 1");
+				in.skip(17);
+				while (in.ready()) {
+					result += in.readLine();
+				}
+
+				// close cheshire
+				out.println("close");
+
+				// cleanup the result
+				result = result.substring(0, result.length()-1);
+
+				// Build an XML object out of the results
+				xml = "<return original=\""+locationStr+"\">";
+				xml += "<![CDATA[" + result + "]]>";
+				xml += "</return>";
+
 
 
 			}
@@ -241,16 +269,16 @@ public class GeoNamesCheshire extends ExtensionFunctionDefinition {
 				xml = "<return>\n";
 				xml += "</return>";
 			}
-			
+
 
 			// Parse XML into an XdmNode
 			Processor proc = new Processor(false);
-	        DocumentBuilder builder = proc.newDocumentBuilder();
-	        
-	        try {
-	        	XdmNode xdm = builder.build(new StreamSource(new StringReader(xml)));
-	        	seq = xdm.getUnderlyingValue();
-	        } catch (Exception sae) {}
+			DocumentBuilder builder = proc.newDocumentBuilder();
+
+			try {
+				XdmNode xdm = builder.build(new StreamSource(new StringReader(xml)));
+				seq = xdm.getUnderlyingValue();
+			} catch (Exception sae) {}
 
 			return seq;
 
