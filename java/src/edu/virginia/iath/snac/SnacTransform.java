@@ -17,6 +17,8 @@
 package edu.virginia.iath.snac;
 
 import edu.virginia.iath.snac.functions.DateParser;
+import edu.virginia.iath.snac.functions.GeoNamesCheshire;
+import edu.virginia.iath.snac.functions.GeoNamesWebLookup;
 
 // XML imports
 import java.io.File;
@@ -54,6 +56,8 @@ public class SnacTransform {
 
 		// Need to register each of the extensions built as defined below.
 		saxonConfig.registerExtensionFunction(new DateParser());
+		saxonConfig.registerExtensionFunction(new GeoNamesWebLookup());
+		saxonConfig.registerExtensionFunction(new GeoNamesCheshire());
 
 		// Create the transformer object
 		Transformer transformer =
