@@ -177,8 +177,9 @@ public class GeoNamesCheshire extends ExtensionFunctionDefinition {
 				locationStr = locationStr.replace("]", "");
 				locationStr = locationStr.replace("[", "");
 				
-				// Check to see if we have a country!
+				// Maps of relevant places (countries and US states)
 				Map<String, String> countries = helper.getCountries();
+				Map<String, String> states = helper.getStates();
 				if (countries.containsKey(locationStr)) { // we have a country!
 					// Do a simple country look up
 
@@ -187,10 +188,16 @@ public class GeoNamesCheshire extends ExtensionFunctionDefinition {
 					// greater or equal to.)  Single quotes appear to parse the value as literal, whereas double
 					// quotes still treat it as the cheshire command (no escaping).
 					out.println("find xcountry @ '" + countries.get(locationStr) + "' and xintlname @ '" + locationStr +"'");
-					System.err.println("Searched for country code: " + countries.get(locationStr) + " and country:sd " + locationStr);
+					System.err.println("Searched for country code: " + countries.get(locationStr) + " and country: " + locationStr);
 					String info = in.readLine();
 					System.err.println(info);
-				} else { // no country, do more in-depth queries
+				} else if (states.containsKey(locationStr)) { // we have a US state!
+					// Do a simple state lookup
+					out.println("find exactname @ '"+ locationStr +"' and admin1 '"+ states.get(locationStr) +"'");
+					System.err.println("Searched for state code: " + states.get(locationStr) + " and state name: " + locationStr);
+					String info = in.readLine();
+					System.err.println(info);
+				} else { // no country or state, do more in-depth queries
 
 					String first = locationStr;
 					String second = locationStr;
