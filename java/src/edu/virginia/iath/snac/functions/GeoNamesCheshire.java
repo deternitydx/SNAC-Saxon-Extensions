@@ -177,7 +177,11 @@ public class GeoNamesCheshire extends ExtensionFunctionDefinition {
 				if (countries.containsKey(locationStr)) { // we have a country!
 					// Do a simple country look up
 
-					out.println("find xcountry @ \"" + countries.get(locationStr) + "\" and xintlname @ \"" + locationStr +"\"");
+					// Replacing double quote (") with single quote (') in the search string 1/8/14, since some
+					// country codes equal the cheshire commands.  (For example, GE for Georgia is the same as
+					// greater or equal to.)  Single quotes appear to parse the value as literal, whereas double
+					// quotes still treat it as the cheshire command (no escaping).
+					out.println("find xcountry @ '" + countries.get(locationStr) + "' and xintlname @ '" + locationStr +"'");
 					System.err.println("Searched for country code: " + countries.get(locationStr) + " and country:sd " + locationStr);
 					String info = in.readLine();
 					System.err.println(info);
@@ -199,25 +203,20 @@ public class GeoNamesCheshire extends ExtensionFunctionDefinition {
 					// removing the @ on admin1 1/6/14 because it's reordering the results away from what we want
 					//  ex: searching exactname west point and admin1 @ ny gives west point, the cape, while
 					//      searching exactname west point and admin1 ny gives the city of west point
-					out.println("find exactname \"" + first + "\" and admin1 \"" + second + "\"");
+					// replacing the " with ' in the query string to escape the search terms-- 1/8/16.  Apparently
+					//   " doesn't actually escape if there are Cheshire commands in the search term
+					out.println("find exactname '" + first + "' and admin1 '" + second + "'");
 					String info = in.readLine();
 					System.err.println(info);
 					if (info.contains(" 0")) {
 
 						// If we have something that may be a state, let's look that up now just in case
 						if (!first.equals(second)) {
-							String stateSN = null;
-							HashMap<String,String> states = helper.getStates();
-							for (String state : states.keySet()) {
-								if (state.toLowerCase().contains(second)) {
-									// they should be unique enough that we should only have one of these
-									stateSN = states.get(state).toLowerCase();
-									break;
-								}
-							}
+							String stateSN = helper.checkForUSState(first, second);
+							
 							if (stateSN != null) {
 								// Do the query
-								out.println("find exactname \"" + first + "\" and admin1 \"" + stateSN + "\"");
+								out.println("find exactname '" + first + "' and admin1 '" + stateSN + "'");
 								info = in.readLine();
 								System.err.println(info);
 							} else {
@@ -233,7 +232,7 @@ public class GeoNamesCheshire extends ExtensionFunctionDefinition {
 						if (info.contains(" 0")) {
 
 							// Next, try a ranking name query by keyword
-							out.println("find name @ \"" + first + "\" and admin1 @ \"" + second + "\"");
+							out.println("find name @ '" + first + "' and admin1 @ '" + second + "'");
 							info = in.readLine();
 							System.err.println(info);
 							if (info.contains(" 0")) {
@@ -243,24 +242,24 @@ public class GeoNamesCheshire extends ExtensionFunctionDefinition {
 								// 2. find ngram_name_wadmin and admin1 search (no alternate names)
 
 								// (1 above) Next, try a query on just ngrams in the name/admin code plus ranking of exact name (for bad state names)
-								out.println("find ngram_name_wadmin \"" + locationStr + "\" and exactname @ \"" + first + "\"");
+								out.println("find ngram_name_wadmin '" + locationStr + "' and exactname @ '" + first + "'");
 								info = in.readLine();
 								System.err.println(info);
 								if (info.contains(" 0")) { 
 
 									// Next, try a looking for matching ngrams
-									out.println("find ngram_wadmin \"" + locationStr + "\" and name_wadmin @ \"" + locationStr + "\"");
+									out.println("find ngram_wadmin '" + locationStr + "' and name_wadmin @ '" + locationStr + "'");
 									info = in.readLine();
 									System.err.println(info);
 									if (info.contains(" 0")) {
 										// Next, try looking for just ngrams and keyword name
-										out.println("find ngram_wadmin \"" + locationStr + "\" and name @ \"" + first + "\"");
+										out.println("find ngram_wadmin '" + locationStr + "' and name @ '" + first + "'");
 										info = in.readLine();
 										System.err.println(info);
 
 										if (info.contains(" 0")) {
 											// Finally, just check ngrams
-											out.println("find ngram_wadmin \"" + locationStr + "\"");
+											out.println("find ngram_wadmin '" + locationStr + "'");
 											info = in.readLine();
 											System.err.println(info);
 										}
@@ -313,5 +312,7 @@ public class GeoNamesCheshire extends ExtensionFunctionDefinition {
 			return seq;
 
 		}
+
+		
 	}
 }
