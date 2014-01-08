@@ -210,10 +210,10 @@ public class GeoNamesCheshire extends ExtensionFunctionDefinition {
 					System.err.println(info);
 					if (info.contains(" 0")) {
 
-						// If we have something that may be a state, let's look that up now just in case
+						// If we have something that may be a "city,st", let's look that up now just in case
 						if (!first.equals(second)) {
 							String stateSN = helper.checkForUSState(first, second);
-							
+
 							if (stateSN != null) {
 								// Do the query
 								out.println("find exactname '" + first + "' and admin1 '" + stateSN + "'");
@@ -231,37 +231,61 @@ public class GeoNamesCheshire extends ExtensionFunctionDefinition {
 
 						if (info.contains(" 0")) {
 
-							// Next, try a ranking name query by keyword
-							out.println("find name @ '" + first + "' and admin1 @ '" + second + "'");
-							info = in.readLine();
-							System.err.println(info);
-							if (info.contains(" 0")) {
+							// TODO 1/8/14 Here we should look up locality, country.  Since we didn't find a US
+							// city, st, we should make sure we catch something like zurich, switzerland.  So,
+							// the tokens after the comma should be checked for country code
 
-								// TODO: Should in here try:
-								// 1. find ngram_name_wadmin and exactname (find the exact name but with ngrams for the admin code)
-								// 2. find ngram_name_wadmin and admin1 search (no alternate names)
+							if (!first.equals(second)) {
+								if (countries.containsKey(second)) {
+									// the second set of tokens is a country! Get the country code and search
 
-								// (1 above) Next, try a query on just ngrams in the name/admin code plus ranking of exact name (for bad state names)
-								out.println("find ngram_name_wadmin '" + locationStr + "' and exactname @ '" + first + "'");
-								info = in.readLine();
-								System.err.println(info);
-								if (info.contains(" 0")) { 
-
-									// Next, try a looking for matching ngrams
-									out.println("find ngram_wadmin '" + locationStr + "' and name_wadmin @ '" + locationStr + "'");
+									// NOTE: we're going to search for international names, since we may have non-ascii characters such as
+									// umlauts.
+									out.println("find xcountry @ '" + countries.get(second) + "' and xintlname @ '" + first +"'");
+									System.err.println("Searched for country code: " + countries.get(second) + " and placename: " + first);
 									info = in.readLine();
 									System.err.println(info);
-									if (info.contains(" 0")) {
-										// Next, try looking for just ngrams and keyword name
-										out.println("find ngram_wadmin '" + locationStr + "' and name @ '" + first + "'");
+								} else {
+									info = " 0";
+								}
+							} else {
+								info = " 0";
+							}
+
+							if (info.contains(" 0")) {
+
+								// Next, try a ranking name query by keyword
+								out.println("find name @ '" + first + "' and admin1 @ '" + second + "'");
+								info = in.readLine();
+								System.err.println(info);
+								if (info.contains(" 0")) {
+
+									// TODO: Should in here try:
+									// 1. find ngram_name_wadmin and exactname (find the exact name but with ngrams for the admin code)
+									// 2. find ngram_name_wadmin and admin1 search (no alternate names)
+
+									// (1 above) Next, try a query on just ngrams in the name/admin code plus ranking of exact name (for bad state names)
+									out.println("find ngram_name_wadmin '" + locationStr + "' and exactname @ '" + first + "'");
+									info = in.readLine();
+									System.err.println(info);
+									if (info.contains(" 0")) { 
+
+										// Next, try a looking for matching ngrams
+										out.println("find ngram_wadmin '" + locationStr + "' and name_wadmin @ '" + locationStr + "'");
 										info = in.readLine();
 										System.err.println(info);
-
 										if (info.contains(" 0")) {
-											// Finally, just check ngrams
-											out.println("find ngram_wadmin '" + locationStr + "'");
+											// Next, try looking for just ngrams and keyword name
+											out.println("find ngram_wadmin '" + locationStr + "' and name @ '" + first + "'");
 											info = in.readLine();
 											System.err.println(info);
+
+											if (info.contains(" 0")) {
+												// Finally, just check ngrams
+												out.println("find ngram_wadmin '" + locationStr + "'");
+												info = in.readLine();
+												System.err.println(info);
+											}
 										}
 									}
 								}
@@ -313,6 +337,6 @@ public class GeoNamesCheshire extends ExtensionFunctionDefinition {
 
 		}
 
-		
+
 	}
 }
