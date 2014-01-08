@@ -171,7 +171,12 @@ public class GeoNamesCheshire extends ExtensionFunctionDefinition {
 				locationStr = StringEscapeUtils.escapeXml(locationStr);
 				//Normalize the string
 				locationStr = locationStr.toLowerCase().replaceAll("\\.", "");
-
+				// Clean up the string
+				locationStr = locationStr.replace("(", "");
+				locationStr = locationStr.replace(")", "");
+				locationStr = locationStr.replace("]", "");
+				locationStr = locationStr.replace("[", "");
+				
 				// Check to see if we have a country!
 				Map<String, String> countries = helper.getCountries();
 				if (countries.containsKey(locationStr)) { // we have a country!
