@@ -30,6 +30,10 @@ public class GeoNamesHelper {
 			return "fl";
 		}
 		
+		if (second.equals("n mex")) { // n mex can be short for new mexico
+			return "nm";
+		}
+		
 		// Lookup the partial name in a list of all full state names.  This will find, for example,
 		// "mich" in "michigan".
 		HashMap<String,String> states = getStates();
