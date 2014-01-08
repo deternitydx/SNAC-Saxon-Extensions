@@ -142,6 +142,7 @@ public class GeoNamesCheshire extends ExtensionFunctionDefinition {
 			Sequence seq = null;
 			String xml = "";
 			String result = "";
+			GeoNamesHelper helper = new GeoNamesHelper();
 
 			// Read in the argument into a string
 			String locationStr = null;
@@ -172,11 +173,7 @@ public class GeoNamesCheshire extends ExtensionFunctionDefinition {
 				locationStr = locationStr.toLowerCase().replaceAll("\\.", "");
 
 				// Check to see if we have a country!
-				Map<String, String> countries = new HashMap<String, String>();
-				for (String iso : Locale.getISOCountries()) {
-					Locale l = new Locale("", iso);
-					countries.put(l.getDisplayCountry().toLowerCase(), iso);
-				}
+				Map<String, String> countries = helper.getCountries();
 				if (countries.containsKey(locationStr)) { // we have a country!
 					// Do a simple country look up
 
@@ -190,54 +187,87 @@ public class GeoNamesCheshire extends ExtensionFunctionDefinition {
 					String second = locationStr;
 					if (locationStr.contains(",")) {
 						first = locationStr.substring(0, locationStr.indexOf(","));
-						second = locationStr.substring(locationStr.indexOf(","), locationStr.length());
+						second = locationStr.substring(locationStr.indexOf(",")+1, locationStr.length());
+						second = second.trim();
 					}
 
 					System.err.println("Searching for: " + locationStr + " as 1." + first + "; 2." + second);
 					// Query cheshire
 
 					// Do exact query first
-					out.println("find exactname @ \"" + first + "\" and admin1 @ \"" + second + "\"");
+					// removing the @ on exactname 1/6/14 because it's causing some errors in the search
+					// removing the @ on admin1 1/6/14 because it's reordering the results away from what we want
+					//  ex: searching exactname west point and admin1 @ ny gives west point, the cape, while
+					//      searching exactname west point and admin1 ny gives the city of west point
+					out.println("find exactname \"" + first + "\" and admin1 \"" + second + "\"");
 					String info = in.readLine();
 					System.err.println(info);
 					if (info.contains(" 0")) {
 
-						// Next, try a ranking name query by keyword
-						out.println("find name @ \"" + first + "\" and admin1 @ \"" + second + "\"");
-						info = in.readLine();
-						System.err.println(info);
-						if (info.contains(" 0")) {
-
-							// TODO: Should in here try:
-							// 1. find ngram_name_wadmin and exactname (find the exact name but with ngrams for the admin code)
-							// 2. find ngram_name_wadmin and admin1 search (no alternate names)
-
-							// (1 above) Next, try a query on just ngrams in the name/admin code plus ranking of exact name (for bad state names)
-							out.println("find ngram_name_wadmin \"" + locationStr + "\" and exactname @ \"" + first + "\"");
-							info = in.readLine();
-							System.err.println(info);
-							if (info.contains(" 0")) { 
-
-								// Next, try a looking for matching ngrams
-								out.println("find ngram_wadmin \"" + locationStr + "\" and name_wadmin @ \"" + locationStr + "\"");
+						// If we have something that may be a state, let's look that up now just in case
+						if (!first.equals(second)) {
+							String stateSN = null;
+							HashMap<String,String> states = helper.getStates();
+							for (String state : states.keySet()) {
+								if (state.toLowerCase().contains(second)) {
+									// they should be unique enough that we should only have one of these
+									stateSN = states.get(state).toLowerCase();
+									break;
+								}
+							}
+							if (stateSN != null) {
+								// Do the query
+								out.println("find exactname \"" + first + "\" and admin1 \"" + stateSN + "\"");
 								info = in.readLine();
 								System.err.println(info);
-								if (info.contains(" 0")) {
-									// Next, try looking for just ngrams and keyword name
-									out.println("find ngram_wadmin \"" + locationStr + "\" and name @ \"" + first + "\"");
+							} else {
+								// shortcut to continue
+								info = " 0";
+							}
+
+						} else {
+							// shortcut to continue
+							info = " 0";
+						}
+
+						if (info.contains(" 0")) {
+
+							// Next, try a ranking name query by keyword
+							out.println("find name @ \"" + first + "\" and admin1 @ \"" + second + "\"");
+							info = in.readLine();
+							System.err.println(info);
+							if (info.contains(" 0")) {
+
+								// TODO: Should in here try:
+								// 1. find ngram_name_wadmin and exactname (find the exact name but with ngrams for the admin code)
+								// 2. find ngram_name_wadmin and admin1 search (no alternate names)
+
+								// (1 above) Next, try a query on just ngrams in the name/admin code plus ranking of exact name (for bad state names)
+								out.println("find ngram_name_wadmin \"" + locationStr + "\" and exactname @ \"" + first + "\"");
+								info = in.readLine();
+								System.err.println(info);
+								if (info.contains(" 0")) { 
+
+									// Next, try a looking for matching ngrams
+									out.println("find ngram_wadmin \"" + locationStr + "\" and name_wadmin @ \"" + locationStr + "\"");
 									info = in.readLine();
 									System.err.println(info);
-
 									if (info.contains(" 0")) {
-										// Finally, just check ngrams
-										out.println("find ngram_wadmin \"" + locationStr + "\"");
+										// Next, try looking for just ngrams and keyword name
+										out.println("find ngram_wadmin \"" + locationStr + "\" and name @ \"" + first + "\"");
 										info = in.readLine();
 										System.err.println(info);
+
+										if (info.contains(" 0")) {
+											// Finally, just check ngrams
+											out.println("find ngram_wadmin \"" + locationStr + "\"");
+											info = in.readLine();
+											System.err.println(info);
+										}
 									}
 								}
 							}
 						}
-
 					}
 				} // end else
 
