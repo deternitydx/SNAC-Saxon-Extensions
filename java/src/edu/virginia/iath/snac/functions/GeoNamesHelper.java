@@ -11,6 +11,14 @@ public class GeoNamesHelper {
 			Locale l = new Locale("", iso);
 			countries.put(l.getDisplayCountry().toLowerCase(), iso);
 		}
+		
+		// Fix for United Kingdom being called Great Britain or England
+		countries.put("england", "gb");
+		countries.put("great britain", "gb");
+		
+		// Fix for U.S.S.R., which does exist in geonames, but only as a political entity
+		countries.put("ussr", "ru");
+		
 		return countries;
 	}
 	

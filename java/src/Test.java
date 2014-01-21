@@ -27,6 +27,7 @@ import net.sf.saxon.s9api.Processor;
 import net.sf.saxon.s9api.SaxonApiException;
 import net.sf.saxon.s9api.XdmNode;
 
+import edu.virginia.iath.snac.functions.GeoNamesHelper;
 import edu.virginia.iath.snac.helpers.DateParserHelper;
 import edu.virginia.iath.snac.helpers.SNACDate;
 
@@ -40,6 +41,7 @@ public class Test {
 		
 		System.out.println(Arrays.toString(strarr) + " " + strarr.length);
 		**/
+		/**
 		String xml = "";
 
 		DateParserHelper dph = new DateParserHelper("[1910s]-1942");
@@ -96,6 +98,9 @@ public class Test {
 		System.out.println(Arrays.toString(hi.trim().split("[ .]*and[ .]*|[ .]*&amp;[ .]*")));
 		for (int i = 0; i < posibilities.length; i++)
 			System.out.println(posibilities[i].trim().matches("\\d{3}\\d*") || posibilities[i].trim().matches("[.]*\\d{3}\\d*[ .]*-[ .]*\\d{3}\\d*[.]*"));
+		**/
 		
+		GeoNamesHelper p = new GeoNamesHelper();
+		System.out.println(p.getCountries());
 	}
 }

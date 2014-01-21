@@ -30,11 +30,6 @@ import java.util.Map;
 import javax.xml.transform.stream.StreamSource;
 
 import org.apache.commons.lang3.StringEscapeUtils;
-import org.json.JSONArray;
-import org.json.JSONObject;
-
-import edu.virginia.iath.snac.helpers.DateParserHelper;
-import edu.virginia.iath.snac.helpers.SNACDate;
 
 //Saxon Imports
 import net.sf.saxon.lib.ExtensionFunctionCall;
@@ -155,6 +150,7 @@ public class GeoNamesCheshire extends ExtensionFunctionDefinition {
 			try
 			{
 
+				System.err.println("Starting cheshire search");
 				Socket cheshire = new Socket("localhost", 12345);
 				PrintWriter out =
 						new PrintWriter(cheshire.getOutputStream(), true);
@@ -193,7 +189,7 @@ public class GeoNamesCheshire extends ExtensionFunctionDefinition {
 					System.err.println(info);
 				} else if (states.containsKey(locationStr)) { // we have a US state!
 					// Do a simple state lookup
-					out.println("find exactname @ '"+ locationStr +"' and admin1 '"+ states.get(locationStr) +"'");
+					out.println("find exactname[5=100] @ '"+ locationStr +"' and admin1 '"+ states.get(locationStr) +"'");
 					System.err.println("Searched for state code: " + states.get(locationStr) + " and state name: " + locationStr);
 					String info = in.readLine();
 					System.err.println(info);
@@ -217,18 +213,20 @@ public class GeoNamesCheshire extends ExtensionFunctionDefinition {
 					//      searching exactname west point and admin1 ny gives the city of west point
 					// replacing the " with ' in the query string to escape the search terms-- 1/8/16.  Apparently
 					//   " doesn't actually escape if there are Cheshire commands in the search term
-					out.println("find exactname '" + first + "' and admin1 '" + second + "'");
+					// adding [5=100] on exactname 1/15/14 to do a true exact match (without only does a
+					//   startsWith match in cheshire
+					out.println("find exactname[5=100] '" + first + "' and admin1 '" + second + "'");
 					String info = in.readLine();
 					System.err.println(info);
 					if (info.contains(" 0")) {
 
-						// If we have something that may be a "city,st", let's look that up now just in case
+						// If we have something that may be a "city,state", let's look that up now just in case
 						if (!first.equals(second)) {
 							String stateSN = helper.checkForUSState(first, second);
 
 							if (stateSN != null) {
 								// Do the query
-								out.println("find exactname '" + first + "' and admin1 '" + stateSN + "'");
+								out.println("find exactname[5=100] '" + first + "' and admin1 '" + stateSN + "'");
 								info = in.readLine();
 								System.err.println(info);
 							} else {
@@ -253,7 +251,7 @@ public class GeoNamesCheshire extends ExtensionFunctionDefinition {
 
 									// NOTE: we're going to search for international names, since we may have non-ascii characters such as
 									// umlauts.
-									out.println("find xcountry @ '" + countries.get(second) + "' and xintlname @ '" + first +"'");
+									out.println("find xcountry @ '" + countries.get(second) + "' and xintlname[5=100] @ '" + first +"'");
 									System.err.println("Searched for country code: " + countries.get(second) + " and placename: " + first);
 									info = in.readLine();
 									System.err.println(info);
@@ -275,6 +273,9 @@ public class GeoNamesCheshire extends ExtensionFunctionDefinition {
 									// TODO: Should in here try:
 									// 1. find ngram_name_wadmin and exactname (find the exact name but with ngrams for the admin code)
 									// 2. find ngram_name_wadmin and admin1 search (no alternate names)
+									
+									// Print out a message
+									System.err.println("Switching to ngrams search.");
 
 									// (1 above) Next, try a query on just ngrams in the name/admin code plus ranking of exact name (for bad state names)
 									out.println("find ngram_name_wadmin '" + locationStr + "' and exactname @ '" + first + "'");
@@ -294,6 +295,7 @@ public class GeoNamesCheshire extends ExtensionFunctionDefinition {
 
 											if (info.contains(" 0")) {
 												// Finally, just check ngrams
+												System.err.println("Last ditch search");
 												out.println("find ngram_wadmin '" + locationStr + "'");
 												info = in.readLine();
 												System.err.println(info);
