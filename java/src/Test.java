@@ -101,6 +101,6 @@ public class Test {
 		**/
 		
 		GeoNamesHelper p = new GeoNamesHelper();
-		System.out.println(p.getCountries());
+		System.out.println(p.getStates());
 	}
 }

@@ -172,6 +172,7 @@ public class GeoNamesCheshire extends ExtensionFunctionDefinition {
 				locationStr = locationStr.replace(")", "");
 				locationStr = locationStr.replace("]", "");
 				locationStr = locationStr.replace("[", "");
+				locationStr = locationStr.trim();
 				
 				// Maps of relevant places (countries and US states)
 				Map<String, String> countries = helper.getCountries();
@@ -193,14 +194,29 @@ public class GeoNamesCheshire extends ExtensionFunctionDefinition {
 					System.err.println("Searched for state code: " + states.get(locationStr) + " and state name: " + locationStr);
 					String info = in.readLine();
 					System.err.println(info);
+				} else if (states.keySet().contains(locationStr)) { // we have a US state!
+					// Do a reverse state lookup
+					String stateName = "";
+					for(String key : states.keySet()) {
+						if (states.get(key).equals(locationStr))
+							stateName = key;
+					}
+					out.println("find exactname[5=100] @ '"+ stateName +"' and admin1 '"+ locationStr +"'");
+					System.err.println("Searched for state code: " + locationStr + " and state name: " + stateName);
+					String info = in.readLine();
+					System.err.println(info);
 				} else { // no country or state, do more in-depth queries
 
 					String first = locationStr;
 					String second = locationStr;
 					if (locationStr.contains(",")) {
-						first = locationStr.substring(0, locationStr.indexOf(","));
+						first = locationStr.substring(0, locationStr.indexOf(",")).trim();
 						second = locationStr.substring(locationStr.indexOf(",")+1, locationStr.length());
 						second = second.trim();
+						// if second are initials with a space in between, then remove the space
+						if (second.length() <= 3) {
+							second = second.replace(" ", "");
+						}
 					}
 
 					System.err.println("Searching for: " + locationStr + " as 1." + first + "; 2." + second);
