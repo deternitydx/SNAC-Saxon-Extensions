@@ -48,7 +48,7 @@
       <xsl:param name="geostring"/>
       <xsl:variable name="location" select="saxext:geonames-cheshire($geostring)"/>
 	  <placeEntry>
-		<xsl:attribute name="original" select="$geostring"/> 
+		<xsl:attribute name="original" select="$geostring"/>
 		<xsl:copy-of select="$location/return/node()"/>
 	  </placeEntry>
     </xsl:template>

@@ -149,32 +149,25 @@ public class GeoNamesCheshire extends ExtensionFunctionDefinition {
 			
 			// Saxon is WONDERFUL and removes escaped characters, so we must re-escape them
 			// Using the Apache Commons Lang's org.apache.commons.lang3.StringEscapeUtils
-			locationStr = StringEscapeUtils.escapeXml(locationStr);
-			//Normalize the string
-			locationStr = locationStr.toLowerCase().replaceAll("\\.", "");
-			// Clean up the string
-			locationStr = locationStr.replace("(", "");
-			locationStr = locationStr.replace(")", "");
-			locationStr = locationStr.replace("]", "");
-			locationStr = locationStr.replace("[", "");
-			locationStr = locationStr.trim();
+			locationStr = helper.cleanString(locationStr);
 			
 			// Connect to Cheshire
 			helper.connect();
 			
 			result = helper.queryCheshire(locationStr);
-			System.err.println("===========================================");
-			System.err.println(result);
-			System.err.println("===========================================");
+			
 			helper.disconnect();
 
 			
 			// Build the result
 			if (result != null) {
 				// Build an XML object out of the results
-				xml = "<return original=\""+locationStr+"\">";
+				xml = "<return original=\""+locationStr+"\" confidence=\"" + helper.getConfidence() + "\">";
 				//xml += "<![CDATA[" + result + "]]>";
+				xml += "<confidence>" + helper.getConfidence() + "</confidence>";
 				xml += result;
+				xml += "<topResults>" + helper.getAllOrderedResults() + "</topResults>";
+				xml += "<allResults>" + helper.getAllResultsCheshireEverReturned() + "</allResults>";
 				xml += "</return>";
 			}
 			else
