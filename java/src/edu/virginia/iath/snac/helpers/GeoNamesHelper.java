@@ -18,6 +18,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class GeoNamesHelper {
+	private Socket cheshire;
 	private PrintWriter out;
 	private BufferedReader in;
 	private ArrayList<String> results;
@@ -40,7 +41,7 @@ public class GeoNamesHelper {
 	public boolean connect() {
 		try {
 			System.err.println("Starting cheshire search");
-			Socket cheshire = new Socket("localhost", 12345);
+			cheshire = new Socket("localhost", 12345);
 			out =
 					new PrintWriter(cheshire.getOutputStream(), true);
 			in =
@@ -63,6 +64,7 @@ public class GeoNamesHelper {
 			// close cheshire
 			out.println("close");
 			out.close();
+			cheshire.close();
 		} catch (Exception e) {
 			// do nothing
 		}
@@ -86,7 +88,7 @@ public class GeoNamesHelper {
 
 		return null;
 	}
-	
+
 	// FOR OVERKILL
 	public String getCheshireResultString(int start) {
 		String result = "";
@@ -132,14 +134,14 @@ public class GeoNamesHelper {
 				uniqueResults.add(result);
 				overkill.add(result);
 			}
-			
+
 			// OVERKILL
 			// for 2 on up, get the cheshire results and add them to overkill
 			for(int i = 2; i < count; i++) {
 				result = getCheshireResultString(i);
 				if (result != null) overkill.add(result);
 			}
-			
+
 			return true;
 		}
 		return false;
@@ -204,8 +206,11 @@ public class GeoNamesHelper {
 	}
 
 	public String queryCheshire( String query) {
-		
-		
+
+
+		String cheshireResult = null;
+
+
 
 		/*******************
 		 * Start by searching for countries, then for states
@@ -217,7 +222,7 @@ public class GeoNamesHelper {
 		/*******************
 		 * If no country or state, then do more in-depth queries
 		 */
-		
+
 
 		String first = query;
 		String second = query;
@@ -232,31 +237,57 @@ public class GeoNamesHelper {
 			}
 		}
 
-		// INSERT GOOGLE HERE
-		String google = cleanString(this.getGoogleAutoCorrectValue(query));
-		System.err.println("Google string: " + google);
-		String[] terms = google.split(",");
-		System.err.println(Arrays.toString(terms));
-		System.err.println(terms.length);
-		if (terms.length >= 3) {
-			String country =  terms[terms.length - 1].trim().toLowerCase();
-			second = terms[terms.length - 2].trim().toLowerCase();
-			first = "";
-			for (int i = 0; i < terms.length - 2; i++) {
-				first += terms[i].trim().toLowerCase();
-			}
-		} else {
-			first = terms[0].trim().toLowerCase();
-			if (terms.length > 1) {
-				second = terms[1].trim().toLowerCase();
+		System.err.println("Searching for: " + query + " as 1." + first + "; 2." + second);
+		exactQueries(first, second, null);
+
+
+		// If we still haven't got a match yet, then query Google for an auto correct and try again
+		if (this.numResults == 0) {
+			// INSERT GOOGLE HERE
+			String country = null;
+			String google = cleanString(this.getGoogleAutoCorrectValue(query));
+			System.err.println("Google string: " + google);
+			String[] terms = google.split(",");
+			System.err.println(Arrays.toString(terms));
+			System.err.println(terms.length);
+			if (terms.length >= 3) {
+				country =  terms[terms.length - 1].trim().toLowerCase();
+				second = terms[terms.length - 2].trim().toLowerCase();
+				first = "";
+				for (int i = 0; i < terms.length - 2; i++) {
+					first += terms[i].trim().toLowerCase();
+				}
 			} else {
-				second = first;
+				first = terms[0].trim().toLowerCase();
+				if (terms.length > 1) {
+					second = terms[1].trim().toLowerCase();
+				} else {
+					second = first;
+				}
 			}
+			System.err.println("Searching for: " + query + " as 1." + first + "; 2." + second + "; country. " + country);
+			exactQueries(first, second, country);
+
 		}
 
-		System.err.println("Searching for: " + query + " as 1." + first + "; 2." + second);
+		// try the last-ditch effort
+		System.err.println("Last-ditch searching for: " + query);
+		undesiredQueries(first, second, query);
 
+
+
+		if (results.size() > 0)
+			return results.get(0);
+		return null;
+	}
+
+	public String exactQueries(String first, String second, String country) {
 		String cheshireResult = null;
+		String countryQuery = "";
+		// Set up the country, if it exists
+		if (country != null && countries.containsKey(country)) {
+			countryQuery = " and xcountry '" + countries.get(country) + "'"; 
+		}
 
 		try
 		{
@@ -270,14 +301,14 @@ public class GeoNamesHelper {
 			//   " doesn't actually escape if there are Cheshire commands in the search term
 			// adding [5=100] on exactname 1/15/14 to do a true exact match (without only does a
 			//   startsWith match in cheshire
-			out.println("find exactname[5=100] '" + first + "' and admin1 '" + second + "'");
+			out.println("find exactname[5=100] '" + first + "' and admin1 '" + second + "'" + countryQuery);
 			cheshireResult = in.readLine();
 			addResult(cheshireResult);
 
 			// Next try an EXACT query for first as an international name and second as the admin1 (state-level)
 			// 
 			// Check for an international name matching, which may be a little better
-			out.println("find xintlname[5=100] '" + first + "' and admin1 '" + second + "'");
+			out.println("find xintlname[5=100] '" + first + "' and admin1 '" + second + "'" + countryQuery);
 			cheshireResult = in.readLine();
 			addResult(cheshireResult);
 
@@ -291,7 +322,7 @@ public class GeoNamesHelper {
 				String stateSN = checkForUSState(first, second);
 				if (stateSN != null) {
 					// Do the query
-					out.println("find exactname[5=100] '" + first + "' and admin1 '" + stateSN + "'");
+					out.println("find exactname[5=100] '" + first + "' and admin1 '" + stateSN + "'" + countryQuery);
 					cheshireResult = in.readLine();
 					addResult(cheshireResult);
 				} 
@@ -315,6 +346,20 @@ public class GeoNamesHelper {
 				}
 			}
 
+			if (results.size() > 0)
+				return results.get(0);
+
+			return null;	
+		} catch (Exception e) {
+			return null;
+		}
+	}
+
+	public String undesiredQueries(String first, String second, String query) {
+		String cheshireResult = null;
+
+		try
+		{
 			//**********************************************************************************************************
 			// Undesired Searching Mechanisms
 			// TODO: These should only be used if the above fail, and each one should taken individually.  If one
@@ -372,13 +417,13 @@ public class GeoNamesHelper {
 
 			if (results.size() > 0)
 				return results.get(0);
-			
+
 			return null;	
 		} catch (Exception e) {
 			return null;
 		}
 	}
-	
+
 	// IN NO PARTICULAR ORDER
 	public String getAllUniqueResults() {
 		String result = "";
@@ -387,7 +432,7 @@ public class GeoNamesHelper {
 		}
 		return result;
 	}
-	
+
 	// IN ORDER, but may have duplicates
 	public String getAllOrderedResults() {
 		String result = "";
@@ -396,7 +441,7 @@ public class GeoNamesHelper {
 		}
 		return result;
 	}
-	
+
 	// OVERKILL (NO ORDER)
 	public String getAllResultsCheshireEverReturned() {
 		String result = "";
@@ -405,23 +450,23 @@ public class GeoNamesHelper {
 		}
 		return result;
 	}
-	
+
 	public int getNumResults() {
 		return numResults;
 	}
-	
+
 	public double getConfidence() {
 		// This is an interesting measure, but we'll try it
-		
+
 		// If no results, then we're not confident
 		if (numResults == 0) return 0.0;
-		
+
 		// confidence now is defined as 1 / numResults.  We're only returning the top result, but it's out of X
 		// return (1.0 / numResults);
-		
+
 		// new idea for confidence:  1 / number of unique results we kept.  That's 1 / number of top results found
 		// return (1.0) / uniqueResults.size();
-		
+
 		// return (1.0) / (numResults - (double) uniqueResults.size());
 
 		// confidence now is defined as 
@@ -429,16 +474,16 @@ public class GeoNamesHelper {
 		// 
 		int count = 0;
 		String result = results.get(0);
-		
+
 		for (String res : results) {
 			if (result.equals(res))
 				count++;
 		}
-		
+
 		return ((double) count) / numResults;
-		
+
 	}
-	
+
 	public String cleanString(String string) {
 		String result = StringEscapeUtils.escapeXml(string);
 		//Normalize the string
@@ -449,7 +494,7 @@ public class GeoNamesHelper {
 		result = result.replace("]", "");
 		result = result.replace("[", "");
 		result = result.trim();
-		
+
 		return result;
 	}
 
@@ -504,7 +549,7 @@ public class GeoNamesHelper {
 		}
 		return retVal;
 	}
-	
+
 	public String getGoogleAutoCorrectValue(String query) {
 		String key = "AIzaSyD09OiYs3KGpaK4oxT7nXteUZBy-0by7oE";
 		String server = "https://maps.googleapis.com/maps/api/place/autocomplete/json?sensor=false&";
