@@ -27,8 +27,8 @@ import net.sf.saxon.s9api.Processor;
 import net.sf.saxon.s9api.SaxonApiException;
 import net.sf.saxon.s9api.XdmNode;
 
-import edu.virginia.iath.snac.functions.GeoNamesHelper;
 import edu.virginia.iath.snac.helpers.DateParserHelper;
+import edu.virginia.iath.snac.helpers.GeoNamesHelper;
 import edu.virginia.iath.snac.helpers.SNACDate;
 
 
