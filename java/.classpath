@@ -4,7 +4,5 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="/media/shannon/javarepo/saxon/saxon9he.jar"/>
 	<classpathentry kind="lib" path="/media/shannon/javarepo/commons-lang3-3.1/commons-lang3-3.1.jar"/>
-	<classpathentry kind="lib" path="/Users/jrhott/javarepo/saxon/saxon9he.jar"/>
-	<classpathentry kind="lib" path="/Users/jrhott/javarepo/commons-lang3-3.1/commons-lang3-3.1.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
