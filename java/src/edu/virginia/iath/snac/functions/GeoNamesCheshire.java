@@ -151,7 +151,7 @@ public class GeoNamesCheshire extends ExtensionFunctionDefinition {
 			
 			// Saxon is WONDERFUL and removes escaped characters, so we must re-escape them
 			// Using the Apache Commons Lang's org.apache.commons.lang3.StringEscapeUtils
-			locationStr = helper.cleanString(locationStr);
+			locationStr = helper.cleanString(locationStr, false);
 			
 			// Connect to Cheshire
 			helper.connect();
@@ -168,8 +168,9 @@ public class GeoNamesCheshire extends ExtensionFunctionDefinition {
 				//xml += "<![CDATA[" + result + "]]>";
 				xml += "<confidence>" + helper.getConfidence() + "</confidence>";
 				xml += result;
-				xml += "<topResults>" + helper.getAllOrderedResults() + "</topResults>";
-				xml += "<allResults>" + helper.getAllResultsCheshireEverReturned() + "</allResults>";
+				// uncomment these to have all the results
+				//xml += "<topResults>" + helper.getAllOrderedResults() + "</topResults>";
+				//xml += "<allResults>" + helper.getAllResultsCheshireEverReturned() + "</allResults>";
 				xml += "</return>";
 			}
 			else
@@ -180,6 +181,7 @@ public class GeoNamesCheshire extends ExtensionFunctionDefinition {
 				xml += "</return>";
 			}
 
+			xml = xml.replace("&", "&amp;");
 
 			// Parse XML into an XdmNode
 			Processor proc = new Processor(false);

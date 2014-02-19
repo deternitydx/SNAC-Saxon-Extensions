@@ -29,6 +29,7 @@ public class GeoNamesHelper {
 	// Maps of relevant places (countries and US states)
 	private Map<String, String> countries = null;
 	private Map<String, String> states = null;
+	private Object type;
 
 	public GeoNamesHelper() {
 		countries = getCountries();
@@ -210,7 +211,6 @@ public class GeoNamesHelper {
 	public String queryCheshire( String query) {
 
 
-		String cheshireResult = null;
 		String country = null;
 
 
@@ -239,15 +239,18 @@ public class GeoNamesHelper {
 			}
 		}
 
-		System.err.println("Searching for: " + query + " as 1." + first + "; 2." + second);
-		exactQueries(first, second, null);
-
+		/*******
+		 * Going to try doing Google first and see what we get
+		 *
+		  System.err.println("Searching for: " + query + " as 1." + first + "; 2." + second);
+		  exactQueries(first, second, null);
+		 **/
 
 		// If we still haven't got a match yet, then query Google for an auto correct and try again
 		if (this.numResults == 0) {
 			// INSERT GOOGLE HERE
-			String google = cleanString(this.getGoogleAutoCorrectValue(query));
-			System.err.println("Google string: " + google);
+			String google = cleanString(this.getGoogleAutoCorrectValue(query), true);
+			System.err.println("Google string: " + google + "; with type: " + type);
 			String[] terms = google.split(",");
 			System.err.println(Arrays.toString(terms));
 			System.err.println(terms.length);
@@ -256,8 +259,9 @@ public class GeoNamesHelper {
 				second = terms[terms.length - 2].trim().toLowerCase();
 				first = "";
 				for (int i = 0; i < terms.length - 2; i++) {
-					first += terms[i].trim().toLowerCase();
+					first += terms[i].trim().toLowerCase() + " ";
 				}
+				first = first.trim();
 			} else {
 				first = terms[0].trim().toLowerCase();
 				if (terms.length > 1) {
@@ -268,6 +272,7 @@ public class GeoNamesHelper {
 			}
 			System.err.println("Searching for: " + query + " as 1." + first + "; 2." + second + "; country. " + countries.get(country));
 			exactQueries(first, second, country);
+			
 
 		}
 
@@ -276,7 +281,7 @@ public class GeoNamesHelper {
 		undesiredQueries(first, second, country, query);
 
 
-
+		// Return the top result
 		if (results.size() > 0)
 			return results.get(0);
 		return null;
@@ -285,9 +290,17 @@ public class GeoNamesHelper {
 	public String exactQueries(String first, String second, String country) {
 		String cheshireResult = null;
 		String countryQuery = "";
+		String typeQuery = "";
 		// Set up the country, if it exists
 		if (country != null && countries.containsKey(country)) {
 			countryQuery = " and xcountry '" + countries.get(country) + "'"; 
+		}
+		
+		if (type != null) {
+			if (!type.equals("ppl"))
+				typeQuery = " and feature_type '" + type + "'";
+			else
+				typeQuery = " and (feature_type 'ppl' or feature_type 'ppla' or feature_type 'ppla2')";
 		}
 
 		try
@@ -302,14 +315,14 @@ public class GeoNamesHelper {
 			//   " doesn't actually escape if there are Cheshire commands in the search term
 			// adding [5=100] on exactname 1/15/14 to do a true exact match (without only does a
 			//   startsWith match in cheshire
-			out.println("find exactname[5=100] '" + first + "' and admin1 '" + second + "'" + countryQuery);
+			out.println("find exactname[5=100] '" + first + "' and admin1 '" + second + "'" + countryQuery + typeQuery);
 			cheshireResult = in.readLine();
 			addResult(cheshireResult);
 
 			// Next try an EXACT query for first as an international name and second as the admin1 (state-level)
 			// 
 			// Check for an international name matching, which may be a little better
-			out.println("find xintlname[5=100] '" + first + "' and admin1 '" + second + "'" + countryQuery);
+			out.println("find xintlname[5=100] '" + first + "' and admin1 '" + second + "'" + countryQuery + typeQuery);
 			cheshireResult = in.readLine();
 			addResult(cheshireResult);
 
@@ -323,7 +336,7 @@ public class GeoNamesHelper {
 				String stateSN = checkForUSState(first, second);
 				if (stateSN != null) {
 					// Do the query
-					out.println("find exactname[5=100] '" + first + "' and admin1 '" + stateSN + "'" + countryQuery);
+					out.println("find exactname[5=100] '" + first + "' and admin1 '" + stateSN + "'" + countryQuery + typeQuery);
 					cheshireResult = in.readLine();
 					addResult(cheshireResult);
 				} 
@@ -340,8 +353,8 @@ public class GeoNamesHelper {
 
 					// NOTE: we're going to search for international names, since we may have non-ascii characters such as
 					// umlauts.
-					out.println("find xcountry '" + countries.get(second) + "' and xintlname[5=100] @ '" + first +"'");
-					System.err.println("Searched for country code: " + countries.get(second) + " and placename: " + first);
+					out.println("find xcountry '" + countries.get(second) + "' and xintlname[5=100] @ '" + first +"'" + typeQuery);
+					System.err.println("Searched for country code: " + countries.get(second) + " and placename: " + first + typeQuery);
 					cheshireResult = in.readLine();
 					addResult(cheshireResult);
 				}
@@ -349,8 +362,8 @@ public class GeoNamesHelper {
 
 				if (country != null && countries.containsKey(country)) {
 					// redo the last search but with country instead of second
-					out.println("find xcountry '" + countries.get(country) + "' and xintlname[5=100] '" + first +"'");
-					System.err.println("Searched for country code: " + countries.get(country) + " and placename: " + first);
+					out.println("find xcountry '" + countries.get(country) + "' and xintlname[5=100] '" + first +"'" + typeQuery);
+					System.err.println("Searched for country code: " + countries.get(country) + " and placename: " + first + typeQuery);
 					cheshireResult = in.readLine();
 					addResult(cheshireResult);
 				}
@@ -500,10 +513,13 @@ public class GeoNamesHelper {
 
 	}
 
-	public String cleanString(String string) {
+	public String cleanString(String string, boolean google) {
 		String result = StringEscapeUtils.escapeXml(string);
 		//Normalize the string
-		result = result.toLowerCase().replaceAll("\\.", " ");
+		if (google)
+			result = result.toLowerCase().replaceAll("\\.", " ");
+		
+		result = result.toLowerCase().replaceAll("\\.", "");
 		// Clean up the string
 		result = result.replace("(", "");
 		result = result.replace(")", "");
@@ -581,11 +597,33 @@ public class GeoNamesHelper {
 			JSONObject obj = new JSONObject(json);
 			JSONArray list = obj.getJSONArray("predictions");
 			obj = list.getJSONObject(0);
-			return obj.getString("description");
+			String description = obj.getString("description");
+			System.err.println(obj);
+			list = obj.getJSONArray("types");
+			System.err.println(list);
+			String type = list.getString(0);
+			this.type = parseGoogleType(type);
+			return description;
 		} catch (Exception e) {
 			System.err.println("Error connecting to google.");
 			e.printStackTrace();
 			return query;
 		}
+	}
+
+	private String parseGoogleType(String type2) {
+		// TODO Auto-generated method stub
+		if (type2.equals("locality"))
+			return "ppl";
+		if (type2.equals("administrative_area_level_2"))
+			return "adm2";
+		if (type2.equals("administrative_area_level_1"))
+			return "adm1";
+		if (type2.equals("establishment"))
+			return null;
+		if (type2.equals("natural_feature"))
+			return null;
+		
+		return null;
 	}
 }
