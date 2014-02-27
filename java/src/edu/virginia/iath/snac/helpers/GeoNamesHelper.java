@@ -185,7 +185,7 @@ public class GeoNamesHelper {
 				System.err.println("Searched for state code: " + states.get(query) + " and state name: " + query);
 				cheshireResult = in.readLine();
 				System.err.println(cheshireResult);
-			} else if (states.keySet().contains(query)) { // we have a US state!
+			} else if (states.values().contains(query)) { // we have a US state!
 				// Do a reverse state lookup
 				String stateName = "";
 				for(String key : states.keySet()) {
@@ -258,10 +258,13 @@ public class GeoNamesHelper {
 				country =  terms[terms.length - 1].trim().toLowerCase();
 				second = terms[terms.length - 2].trim().toLowerCase();
 				first = "";
-				for (int i = 0; i < terms.length - 2; i++) {
-					first += terms[i].trim().toLowerCase() + " ";
-				}
-				first = first.trim();
+				// changing to only use the first value in the CSVs to determine first.  this will likely
+				// be better for geonames and cheshire's search method. (2/27/2014)
+				//for (int i = 0; i < terms.length - 2; i++) {
+				//	first += terms[i].trim().toLowerCase() + " ";
+				//}
+				//first = first.trim();
+				first = terms[0].trim().toLowerCase();
 			} else {
 				first = terms[0].trim().toLowerCase();
 				if (terms.length > 1) {
@@ -300,7 +303,7 @@ public class GeoNamesHelper {
 			if (!type.equals("ppl"))
 				typeQuery = " and feature_type '" + type + "'";
 			else
-				typeQuery = " and (feature_type 'ppl' or feature_type 'ppla' or feature_type 'ppla2')";
+				typeQuery = " and (feature_type 'ppl' or feature_type 'ppla' or feature_type 'ppla2' or feature_type 'ppla3' or feature_type 'pplc')";
 		}
 
 		try
