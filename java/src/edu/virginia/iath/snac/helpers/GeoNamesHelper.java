@@ -1,8 +1,10 @@
 package edu.virginia.iath.snac.helpers;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.io.StringReader;
 import java.net.Socket;
 import java.net.URL;
 import java.net.URLEncoder;
@@ -13,9 +15,13 @@ import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.w3c.dom.Document;
 
 public class GeoNamesHelper {
 	private Socket cheshire;
@@ -30,6 +36,10 @@ public class GeoNamesHelper {
 	private Map<String, String> countries = null;
 	private Map<String, String> states = null;
 	private Object type;
+	
+	// Document parsers for the XML parsing of the results
+	private Document resultDoc;
+	
 
 	public GeoNamesHelper() {
 		countries = getCountries();
@@ -181,7 +191,7 @@ public class GeoNamesHelper {
 		{
 			if (states.containsKey(query)) { // we have a US state!
 				// Do a simple state lookup
-				out.println("find exactname[5=100] \""+ query +"\" and admin1 \""+ states.get(query) +"\"");
+				out.println("find exactname[5=100] \""+ query +"\" and admin1 \""+ states.get(query) +"\" and feature_type \"adm1\"");
 				System.err.println("Searched for state code: " + states.get(query) + " and state name: " + query);
 				cheshireResult = in.readLine();
 				System.err.println(cheshireResult);
@@ -192,7 +202,7 @@ public class GeoNamesHelper {
 					if (states.get(key).equals(query))
 						stateName = key;
 				}
-				out.println("find exactname[5=100] \""+ stateName +"\" and admin1 \""+ query +"\"");
+				out.println("find exactname[5=100] \""+ stateName +"\" and admin1 \""+ query +"\" and feature_type \"adm1\"");
 				System.err.println("Searched for state code: " + query + " and state name: " + stateName);
 				cheshireResult = in.readLine();
 				System.err.println(cheshireResult);
@@ -208,7 +218,7 @@ public class GeoNamesHelper {
 		return false;
 	}
 
-	public String queryCheshire( String query) {
+	public boolean queryCheshire( String query) {
 
 
 		String country = null;
@@ -286,8 +296,8 @@ public class GeoNamesHelper {
 
 		// Return the top result
 		if (results.size() > 0)
-			return results.get(0);
-		return null;
+			return true; //results.get(0);
+		return false;
 	}
 
 	public String exactQueries(String first, String second, String country) {
@@ -628,5 +638,61 @@ public class GeoNamesHelper {
 			return null;
 		
 		return null;
+	}
+
+	public String getGeonamesEntry() {
+		if (results.size() > 0)
+			return results.get(0);
+		return null;
+	} 
+	
+	public String getGeonamesId() {
+		if (resultDoc == null)
+			parseResult();
+		if (resultDoc != null) {
+			return resultDoc.getElementsByTagName("geonameid").item(0).getTextContent();
+		}
+		return null;
+	}
+	
+	public String getGeonamesName() {
+		if (resultDoc == null)
+			parseResult();
+		if (resultDoc != null) {
+			return resultDoc.getElementsByTagName("name").item(0).getTextContent();
+		}
+		return null;
+	}
+	
+	public String getGeonamesLatitude() {
+		if (resultDoc == null)
+			parseResult();
+		if (resultDoc != null) {
+			return resultDoc.getElementsByTagName("latitude").item(0).getTextContent();
+		}
+		return null;
+	}
+	
+	public String getGeonamesLongitude() {
+		if (resultDoc == null)
+			parseResult();
+		if (resultDoc != null) {
+			return resultDoc.getElementsByTagName("longitude").item(0).getTextContent();
+		}
+		return null;
+	}
+	
+	private void parseResult() {
+		try {
+			DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+			DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+			resultDoc = dBuilder.parse(new ByteArrayInputStream(results.get(0).getBytes()));
+			
+			resultDoc.getDocumentElement().normalize();
+			
+		} catch (Exception e) {
+			resultDoc = null;
+			
+		}
 	}
 }

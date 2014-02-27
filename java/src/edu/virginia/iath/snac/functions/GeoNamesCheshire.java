@@ -138,7 +138,7 @@ public class GeoNamesCheshire extends ExtensionFunctionDefinition {
 		{
 			Sequence seq = null;
 			String xml = "";
-			String result = "";
+			boolean success = false;;
 			GeoNamesHelper helper = new GeoNamesHelper();
 
 			// Read in the argument into a string
@@ -156,18 +156,22 @@ public class GeoNamesCheshire extends ExtensionFunctionDefinition {
 			// Connect to Cheshire
 			helper.connect();
 			
-			result = helper.queryCheshire(locationStr);
+			success = helper.queryCheshire(locationStr);
 			
 			helper.disconnect();
 
 			
 			// Build the result
-			if (result != null) {
+			if (success) {
 				// Build an XML object out of the results
 				xml = "<return original=\""+locationStr+"\" confidence=\"" + helper.getConfidence() + "\">";
 				//xml += "<![CDATA[" + result + "]]>";
 				xml += "<confidence>" + helper.getConfidence() + "</confidence>";
-				xml += result;
+				xml += "<geonameid>" + helper.getGeonamesId() + "</geonameid>";
+				xml += "<name>" + helper.getGeonamesName() + "</name>";
+				xml += "<latitude>" + helper.getGeonamesLatitude() + "</latitude>";
+				xml += "<longitude>" + helper.getGeonamesLongitude() + "</longitude>";
+				xml += "<topResult>" + helper.getGeonamesEntry() + "</topResult>";
 				// uncomment these to have all the results
 				xml += "<topResults>" + helper.getAllOrderedResults() + "</topResults>";
 				xml += "<allResults>" + helper.getAllResultsCheshireEverReturned() + "</allResults>";
