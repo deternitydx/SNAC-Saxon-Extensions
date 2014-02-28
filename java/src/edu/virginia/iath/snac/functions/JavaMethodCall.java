@@ -206,7 +206,7 @@ public class JavaMethodCall extends ExtensionFunctionDefinition {
 	public static void main(String[] args) {
 		try {
 			String cla = "java.util.Calendar";
-			String method = "getTime";
+			String method = "getInstance";
 			String param = "2.5";
 			Class<?> c = Class.forName(cla);
 			//System.out.println(Arrays.toString(c.getMethods()));
@@ -216,6 +216,7 @@ public class JavaMethodCall extends ExtensionFunctionDefinition {
 				Method m = methods[i];
 				if (m.getName().equals(method)) {
 					try {
+						m.setAccessible(true);
 						System.out.println(m.invoke(c.newInstance()));
 						//System.out.println(m.invoke(new Object(), Double.parseDouble(param)));
 						called = true;

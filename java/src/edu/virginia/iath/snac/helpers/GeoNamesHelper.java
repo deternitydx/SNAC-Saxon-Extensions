@@ -23,6 +23,18 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.w3c.dom.Document;
 
+/**
+ * @author jh2jf
+ *
+ */
+/**
+ * @author jh2jf
+ *
+ */
+/**
+ * @author jh2jf
+ *
+ */
 public class GeoNamesHelper {
 	private Socket cheshire;
 	private PrintWriter out;
@@ -300,6 +312,27 @@ public class GeoNamesHelper {
 		return false;
 	}
 
+	/**
+	 * Performs exact queries in Cheshire based on the query string's parts (first, second, country).  These results are usually good and ordered,
+	 * such that the top result is usually the best.
+	 * <p>
+	 * Searches are performed in the following order:
+	 * <ol>
+	 * <li> Exact match (no truncation) on <code>first<code> as the place name and <code>second</code> as the admin1 code
+	 * <li> Exact match (no truncation) on <code>first<code> as the international place name and <code>second</code> as the admin1 code
+	 * <li> If <code>second</code> contains a US state (in some form): Exact match (no truncation) on <code>first<code> as the place name 
+	 * 		and the state abbreviation generated from <code>second</code> as the admin1 code
+	 * <li> If <code>second</code> contains a country name (in some form): Exact match (no truncation) on <code>first<code> as the place name 
+	 * 		and the country ISO abbreviation generated from <code>second</code> as the country code
+	 * <li> If there is a <code>country</code> given: Exact match (no truncation) on <code>first<code> as the place name 
+	 * 		and the country ISO abbreviation generated from <code>country</code> as the country code
+	 * </ol>
+	 * 
+	 * @param first First part of the search string (before the comma), usually a place name
+	 * @param second Second part of the search string (after the comma), usually a state
+	 * @param country Country string, in ISO format
+	 * @return Top Geonames XML result as a String, if found, or null otherwise.
+	 */
 	public String exactQueries(String first, String second, String country) {
 		String cheshireResult = null;
 		String countryQuery = "";
@@ -391,6 +424,26 @@ public class GeoNamesHelper {
 		}
 	}
 
+	/**
+	 * Performs the undesired Cheshire queries.  These are usually guaranteed to be unreliable, as they return many results
+	 * and Cheshire does not do a great job in ordering the results.  The best match for the query will usually NOT be the
+	 * first one returned.  These should only be used as a very last result!
+	 * <p>
+	 * The searches are performed in the following order:
+	 * <ol>
+	 * <li> Ranked keyword results by name (of <code>first</code>) and admin1 codes (of <code>second</code>), with a direct search in country
+	 * <li> N-grams results by name and admin codes (of entire query string), ranked by exact matches to the exact name (in <code>first</code>)
+	 * <li> N-grams results by name and admin codes (of entire query string), ranked by keyword name and admin codes match (in the entire query string)
+	 * <li> N-grams results by name and admin codes (of entire query string), ranked by keyword name (only) match (in <code>first</code>)
+	 * <li> N-grams results by name and admin codes (of entire query string), ranked by the number of matching n-grams (NO ORDER ON BEST MATCHING)
+	 * </ol>
+	 * 
+	 * @param first First part of the query string, usually the place name
+	 * @param second Second part of the query string, usually the state
+	 * @param country Country string, if one exists
+	 * @param query Full query string to use in last ditch n-grams search
+	 * @return Top Cheshire XML result as String, if one exists, else returns null
+	 */
 	public String undesiredQueries(String first, String second, String country, String query) {
 		String cheshireResult = null;
 		String countryQuery = "";
@@ -467,6 +520,11 @@ public class GeoNamesHelper {
 	}
 
 	// IN NO PARTICULAR ORDER
+	/**
+	 * Gets all unique top Cheshire results (in Geonmaes XML format), in no particular order.
+	 * 
+	 * @return String of unique concatenated XML results from Cheshire.
+	 */
 	public String getAllUniqueResults() {
 		String result = "";
 		for (String res : uniqueResults) {
@@ -476,6 +534,12 @@ public class GeoNamesHelper {
 	}
 
 	// IN ORDER, but may have duplicates
+	/**
+	 * Gets all top Cheshire results (in Geonames XML format), in order based on when they were found.  
+	 * Matches for more exact queries will be first, with the top match first.
+	 * 
+	 * @return String of concatenated XML results from Cheshire.
+	 */
 	public String getAllOrderedResults() {
 		String result = "";
 		for (String res : results) {
@@ -485,6 +549,11 @@ public class GeoNamesHelper {
 	}
 
 	// OVERKILL (NO ORDER)
+	/**
+	 * Gets all Cheshire results (in Geonames XML format) that were returned.  This method is OVERKILL.
+	 * 
+	 * @return String of concatenated XML results from Cheshire.
+	 */
 	public String getAllResultsCheshireEverReturned() {
 		String result = "";
 		for (String res: overkill) {
@@ -493,10 +562,22 @@ public class GeoNamesHelper {
 		return result;
 	}
 
+	/**
+	 * Gets the total number of results.
+	 * 
+	 * @return total number of results.
+	 */
 	public int getNumResults() {
 		return numResults;
 	}
 
+	/**
+	 * Generates a confidence of the result that has been found.  Right now, it's generated as:
+	 * 
+	 *   number of times the top result appeared / total number of results
+	 *   
+	 * @return confidence of the top result.
+	 */
 	public double getConfidence() {
 		// This is an interesting measure, but we'll try it
 
@@ -526,10 +607,18 @@ public class GeoNamesHelper {
 
 	}
 
-	public String cleanString(String string, boolean google) {
+	/**
+	 * Cleans a string of extraneous characters, to create a normal form.  Removes parentheses and brackets.  
+	 * Replaces periods (.) with spaces if the periodToSpace parameter is true, else it removes periods.
+	 * 
+	 * @param string String to clean.
+	 * @param periodToSpace If true, replaces periods with spaces. If false, removes periods.
+	 * @return Cleaned string.
+	 */
+	public String cleanString(String string, boolean periodToSpace) {
 		String result = StringEscapeUtils.escapeXml(string);
 		//Normalize the string
-		if (google)
+		if (periodToSpace)
 			result = result.toLowerCase().replaceAll("\\.", " ");
 		
 		result = result.toLowerCase().replaceAll("\\.", "");
@@ -543,6 +632,11 @@ public class GeoNamesHelper {
 		return result;
 	}
 
+	/**
+	 * Creates a hashmap of countries of the world as full name -> ISO standard abbreviation
+	 * 
+	 * @return Hashmap of all countries
+	 */
 	public HashMap<String, String> getCountries() {
 		HashMap<String, String> countries = new HashMap<String, String>();
 		for (String iso : Locale.getISOCountries()) {
@@ -560,6 +654,11 @@ public class GeoNamesHelper {
 		return countries;
 	}
 
+	/**
+	 * Creates a hashmap of US/Canada states and territories as full name -> abbreviation
+	 * 
+	 * @return Hashmap of all states and abbreviations
+	 */
 	public HashMap<String, String> getStates() {
 		HashMap<String, String> states = new HashMap<String, String>();
 		// Fix for District of Columbia
@@ -570,7 +669,13 @@ public class GeoNamesHelper {
 		return states;
 	}
 
-	// Checks for fuzzy state names in the second position in the comma separated string
+	/**
+	 * Checks for fuzzy state names in the second position in the comma separated string
+	 * 
+	 * @param first First part of the query string (pre comma)
+	 * @param second Second part of the query string (after the comma)
+	 * @return The two-letter state abbreviation, if one exists, or null if not.
+	 */
 	public String checkForUSState(String first, String second) {
 		String retVal = null;
 
@@ -595,6 +700,12 @@ public class GeoNamesHelper {
 		return retVal;
 	}
 
+	/**
+	 * Queries the Google Autocorrect API and returns the top comma separated result from Google.  Also stores the type in the type field.
+	 * 
+	 * @param query Search string to query google
+	 * @return Top result from google
+	 */
 	public String getGoogleAutoCorrectValue(String query) {
 		String key = "AIzaSyD09OiYs3KGpaK4oxT7nXteUZBy-0by7oE";
 		String server = "https://maps.googleapis.com/maps/api/place/autocomplete/json?sensor=false&";
@@ -624,8 +735,12 @@ public class GeoNamesHelper {
 		}
 	}
 
+	/**
+	 * Parses the Google location type and returns a valid Geonames location type
+	 * @param type2 Google location type
+	 * @return Geonames location type, or null if there is not a good match
+	 */
 	private String parseGoogleType(String type2) {
-		// TODO Auto-generated method stub
 		if (type2.equals("locality"))
 			return "ppl";
 		if (type2.equals("administrative_area_level_2"))
@@ -639,13 +754,23 @@ public class GeoNamesHelper {
 		
 		return null;
 	}
-
+	
+	/**
+	 * Gets the top Geonames result, in Geonames XML format
+	 * 
+	 * @return String Geonames XML result, or null if there was a problem
+	 */
 	public String getGeonamesEntry() {
 		if (results.size() > 0)
 			return results.get(0);
 		return null;
 	} 
 	
+	/**
+	 * Parses out and returns the geonames id from the top Geonames result
+	 * 
+	 * @return String geonames id or null if there was a problem
+	 */
 	public String getGeonamesId() {
 		if (resultDoc == null)
 			parseResult();
@@ -655,6 +780,11 @@ public class GeoNamesHelper {
 		return null;
 	}
 	
+	/**
+	 * Parses out and returns the name from the top Geonames result
+	 * 
+	 * @return String name or null if there was a problem
+	 */
 	public String getGeonamesName() {
 		if (resultDoc == null)
 			parseResult();
@@ -664,6 +794,11 @@ public class GeoNamesHelper {
 		return null;
 	}
 	
+	/**
+	 * Parses out and returns the latitude from the top Geonames result
+	 * 
+	 * @return String latitude or null if there was a problem
+	 */
 	public String getGeonamesLatitude() {
 		if (resultDoc == null)
 			parseResult();
@@ -673,6 +808,11 @@ public class GeoNamesHelper {
 		return null;
 	}
 	
+	/**
+	 * Parses out and returns the longitude from the top Geonames result
+	 * 
+	 * @return String longitude or null if there was a problem
+	 */
 	public String getGeonamesLongitude() {
 		if (resultDoc == null)
 			parseResult();
@@ -682,6 +822,9 @@ public class GeoNamesHelper {
 		return null;
 	}
 	
+	/**
+	 *  Parses the resulting Geonames XML row into the Document object resultDoc for later use.
+	 */
 	private void parseResult() {
 		try {
 			DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
