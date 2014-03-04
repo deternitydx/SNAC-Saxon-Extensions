@@ -738,6 +738,9 @@ public class GeoNamesHelper {
 
 		// Fix for U.S.S.R., which does exist in geonames, but only as a political entity
 		countries.put("ussr", "ru");
+		
+		// Since we seem to have issues matching the united states, let's add it!
+		countries.put("united states", "us");
 
 		return countries;
 	}
