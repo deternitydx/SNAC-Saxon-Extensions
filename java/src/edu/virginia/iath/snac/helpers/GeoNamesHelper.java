@@ -1,3 +1,19 @@
+/**
+ *        The Institute for Advanced Technology in the Humanities
+ *        
+ *        Copyright 2013 University of Virginia. Licensed under the Educational Community License, Version 2.0 (the
+ *        "License"); you may not use this file except in compliance with the License. You may obtain a copy of the
+ *        License at
+ *        
+ *        http://opensource.org/licenses/ECL-2.0
+ *        http://www.osedu.org/licenses/ECL-2.0
+ *        
+ *        Unless required by applicable law or agreed to in writing, software distributed under the License is
+ *        distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See
+ *        the License for the specific language governing permissions and limitations under the License.
+ *
+ *
+ */
 package edu.virginia.iath.snac.helpers;
 
 import java.io.BufferedReader;
@@ -24,16 +40,11 @@ import org.json.JSONObject;
 import org.w3c.dom.Document;
 
 /**
- * @author jh2jf
- *
- */
-/**
- * @author jh2jf
- *
- */
-/**
- * @author jh2jf
- *
+ * GeoNamesHelper Class, used for querying cheshire for Geonames results.  Also utilizes
+ * Google AutoCorrect to fix spelling errors and get more information search strings
+ * before searching in cheshire.
+ * 
+ * @author Robbie Hott
  */
 public class GeoNamesHelper {
 	private Socket cheshire;
@@ -53,6 +64,9 @@ public class GeoNamesHelper {
 	private Document resultDoc;
 	
 
+	/**
+	 * Default Constructor: Initializes all lists and pre-fills country and state lookup maps.
+	 */
 	public GeoNamesHelper() {
 		countries = getCountries();
 		states = getStates();
@@ -61,6 +75,11 @@ public class GeoNamesHelper {
 		overkill = new HashSet<String>();
 	}
 
+	/**
+	 * Connects to cheshire via a Socket on localhost, port 12345.
+	 * 
+	 * @return True if connection was successful, false otherwise.
+	 */
 	public boolean connect() {
 		try {
 			System.err.println("Starting cheshire search");
@@ -81,6 +100,11 @@ public class GeoNamesHelper {
 
 	}
 
+	/**
+	 * Disconnects the Socket connection to cheshire.
+	 * 
+	 * @return True.
+	 */
 	public boolean disconnect() {
 
 		try {
@@ -94,6 +118,11 @@ public class GeoNamesHelper {
 		return true;
 	}
 
+	/**
+	 * Gets the Geonames XML top result from cheshire.
+	 * 
+	 * @return XML String for result at position 1.
+	 */
 	public String getCheshireResultString() {
 		String result = "";
 		try {
@@ -112,7 +141,13 @@ public class GeoNamesHelper {
 		return null;
 	}
 
-	// FOR OVERKILL
+	/**
+	 * Gets the Geonames XML result from cheshire at the given offset <code>start</code>. 
+	 * Indexing starts at 1.
+	 * 
+	 * @param start Index within the cheshire results. 
+	 * @return XML String for result at position <code>start</code>
+	 */
 	public String getCheshireResultString(int start) {
 		String result = "";
 		try {
@@ -131,6 +166,12 @@ public class GeoNamesHelper {
 		return null;
 	}
 
+	/**
+	 * Parses the cheshire result string for the number of matches found.
+	 * 
+	 * @param cheshireResult Cheshire result string.
+	 * @return Number of results found in cheshire.
+	 */
 	private int getResultCount(String cheshireResult) {
 		if (cheshireResult != null) {
 			String[] info = cheshireResult.split("Default ");
@@ -140,10 +181,19 @@ public class GeoNamesHelper {
 		return 0;
 	}
 
+	/**
+	 * Parses the cheshire result string ("Default...") for the number of results
+	 * found, then gets the cheshire Geonames XML string for the top result of this
+	 * query and addes it to each list.  Then, it gets the rest of the XML results from
+	 * cheshire and adds them to the overkill list. 
+	 * 
+	 * @param cheshireResult Cheshire result string.
+	 * @return True if at least one result was added, false otherwise.
+	 */
 	private boolean addResult(String cheshireResult) {
 
 		// Debug info:
-		System.err.println(cheshireResult);
+		// System.err.println(cheshireResult);
 
 		int count = getResultCount(cheshireResult);
 		if (count > 0) {
@@ -170,6 +220,13 @@ public class GeoNamesHelper {
 		return false;
 	}
 
+	/**
+	 * Looks up the query string in a map of countries and ISO abbreviations.  If the query matches either
+	 * an abbreviation or a country, cheshire is queried exactly for tht country
+	 * 
+	 * @param query String to match for a country.
+	 * @return True if a country was found, false otherwise.
+	 */
 	protected boolean searchForCountry(String query) {
 		String cheshireResult = null;
 		try
@@ -183,12 +240,25 @@ public class GeoNamesHelper {
 				// quotes still treat it as the cheshire command (no escaping).
 				// 2/3/14 Replaced the @ with a direct serach on country and an exact (no truncating) match
 				//   on the country name.  This fixes US, but hopefully doesn't break any others.
-				out.println("find xcountry \"" + countries.get(query) + "\" and xintlname[5=100] \"" + query +"\"");
+				out.println("find xcountry '" + countries.get(query) + "' and xintlname[5=100] '" + query +"'");
 				System.err.println("Searched for country code: " + countries.get(query) + " and country: " + query);
 				cheshireResult = in.readLine();
 				System.err.println(cheshireResult);
 				addResult(cheshireResult);
 				return true;
+			} else if (countries.values().contains(query)) { // we have an iso abbreviation
+				String countryName = "";
+				for (String key : countries.keySet()) {
+					if (countries.get(key).equals(query))
+						countryName = key;
+				}
+				out.println("find xcountry '" + query + "' and xintlname[5=100] '" + countryName +"'");
+				System.err.println("Searched for country code: " + query + " and country: " + countryName);
+				cheshireResult = in.readLine();
+				System.err.println(cheshireResult);
+				addResult(cheshireResult);
+				return true;
+				
 			}
 		} catch (Exception e) {
 			return false;
@@ -197,13 +267,20 @@ public class GeoNamesHelper {
 	}
 
 
+	/**
+	 * Looks up the query string in a map of states and state abbreviations.  If the query matches either
+	 * an abbreviation or state name, cheshire is queried exactly for that state.
+	 * 
+	 * @param query String to match for a state.
+	 * @return True if a state was found, false otherwise.
+	 */
 	protected boolean searchForState(String query) {
 		String cheshireResult = null;
 		try
 		{
 			if (states.containsKey(query)) { // we have a US state!
 				// Do a simple state lookup
-				out.println("find exactname[5=100] \""+ query +"\" and admin1 \""+ states.get(query) +"\" and feature_type \"adm1\"");
+				out.println("find exactname[5=100] '"+ query +"' and admin1 '"+ states.get(query) +"' and feature_type 'adm1'");
 				System.err.println("Searched for state code: " + states.get(query) + " and state name: " + query);
 				cheshireResult = in.readLine();
 				System.err.println(cheshireResult);
@@ -214,7 +291,7 @@ public class GeoNamesHelper {
 					if (states.get(key).equals(query))
 						stateName = key;
 				}
-				out.println("find exactname[5=100] \""+ stateName +"\" and admin1 \""+ query +"\" and feature_type \"adm1\"");
+				out.println("find exactname[5=100] '"+ stateName +"' and admin1 '"+ query +"' and feature_type 'adm1'");
 				System.err.println("Searched for state code: " + query + " and state name: " + stateName);
 				cheshireResult = in.readLine();
 				System.err.println(cheshireResult);
@@ -230,6 +307,22 @@ public class GeoNamesHelper {
 		return false;
 	}
 
+	
+	/**
+	 * Search for a given query string.  This method is what should be called from another class to
+	 * handle the entire query process.  It performs queries in a few steps:
+	 * <ol>
+	 * <li> Look up the query in a list of countries for a match (country name) TODO: ISO
+	 * <li> Look up the query in a list of US/Canada states for a match (state name or abbreviation)
+	 * <li> Query Google Map's AutoComplete API for a normalized version of the string (fixes spelling errors)
+	 * <li> Perform exact queries on the Google normalized string
+	 * <li> Perform the undesired queries (n-grams, etc) on the Google normalized string and original query
+	 * </ol>
+	 * It then returns true or false if at least one result was found.
+	 * 
+	 * @param query The query string on which to search.
+	 * @return True if there is at least one result, false otherwise.
+	 */
 	public boolean queryCheshire( String query) {
 
 
@@ -270,7 +363,6 @@ public class GeoNamesHelper {
 
 		// If we still haven't got a match yet, then query Google for an auto correct and try again
 		if (this.numResults == 0) {
-			// INSERT GOOGLE HERE
 			String google = cleanString(this.getGoogleAutoCorrectValue(query), true);
 			System.err.println("Google string: " + google + "; with type: " + type);
 			String[] terms = google.split(",");
@@ -282,10 +374,6 @@ public class GeoNamesHelper {
 				first = "";
 				// changing to only use the first value in the CSVs to determine first.  this will likely
 				// be better for geonames and cheshire's search method. (2/27/2014)
-				//for (int i = 0; i < terms.length - 2; i++) {
-				//	first += terms[i].trim().toLowerCase() + " ";
-				//}
-				//first = first.trim();
 				first = terms[0].trim().toLowerCase();
 			} else {
 				first = terms[0].trim().toLowerCase();
@@ -306,9 +394,9 @@ public class GeoNamesHelper {
 		undesiredQueries(first, second, country, query);
 
 
-		// Return the top result
+		// Return whether a result was found
 		if (results.size() > 0)
-			return true; //results.get(0);
+			return true; 
 		return false;
 	}
 
@@ -318,13 +406,13 @@ public class GeoNamesHelper {
 	 * <p>
 	 * Searches are performed in the following order:
 	 * <ol>
-	 * <li> Exact match (no truncation) on <code>first<code> as the place name and <code>second</code> as the admin1 code
-	 * <li> Exact match (no truncation) on <code>first<code> as the international place name and <code>second</code> as the admin1 code
-	 * <li> If <code>second</code> contains a US state (in some form): Exact match (no truncation) on <code>first<code> as the place name 
+	 * <li> Exact match (no truncation) on <code>first</code> as the place name and <code>second</code> as the admin1 code
+	 * <li> Exact match (no truncation) on <code>first</code> as the international place name and <code>second</code> as the admin1 code
+	 * <li> If <code>second</code> contains a US state (in some form): Exact match (no truncation) on <code>first</code> as the place name 
 	 * 		and the state abbreviation generated from <code>second</code> as the admin1 code
-	 * <li> If <code>second</code> contains a country name (in some form): Exact match (no truncation) on <code>first<code> as the place name 
+	 * <li> If <code>second</code> contains a country name (in some form): Exact match (no truncation) on <code>first</code> as the place name 
 	 * 		and the country ISO abbreviation generated from <code>second</code> as the country code
-	 * <li> If there is a <code>country</code> given: Exact match (no truncation) on <code>first<code> as the place name 
+	 * <li> If there is a <code>country</code> given: Exact match (no truncation) on <code>first</code> as the place name 
 	 * 		and the country ISO abbreviation generated from <code>country</code> as the country code
 	 * </ol>
 	 * 
@@ -339,14 +427,14 @@ public class GeoNamesHelper {
 		String typeQuery = "";
 		// Set up the country, if it exists
 		if (country != null && countries.containsKey(country)) {
-			countryQuery = " and xcountry \"" + countries.get(country) + "\""; 
+			countryQuery = " and xcountry '" + countries.get(country) + "'"; 
 		}
 		
 		if (type != null) {
 			if (!type.equals("ppl"))
-				typeQuery = " and feature_type \"" + type + "\"";
+				typeQuery = " and feature_type '" + type + "'";
 			else
-				typeQuery = " and (feature_type \"ppl\" or feature_type \"ppla\" or feature_type \"ppla2\" or feature_type \"ppla3\" or feature_type \"pplc\")";
+				typeQuery = " and (feature_type 'ppl' or feature_type 'ppla' or feature_type 'ppla2' or feature_type 'ppla3' or feature_type 'pplc')";
 		}
 
 		try
@@ -361,14 +449,14 @@ public class GeoNamesHelper {
 			//   " doesn't actually escape if there are Cheshire commands in the search term
 			// adding [5=100] on exactname 1/15/14 to do a true exact match (without only does a
 			//   startsWith match in cheshire
-			out.println("find exactname[5=100] \"" + first + "\" and admin1 \"" + second + "\"" + countryQuery + typeQuery);
+			out.println("find exactname[5=100] '" + first + "' and admin1 '" + second + "'" + countryQuery + typeQuery);
 			cheshireResult = in.readLine();
 			addResult(cheshireResult);
 
 			// Next try an EXACT query for first as an international name and second as the admin1 (state-level)
 			// 
 			// Check for an international name matching, which may be a little better
-			out.println("find xintlname[5=100] \"" + first + "\" and admin1 \"" + second + "\"" + countryQuery + typeQuery);
+			out.println("find xintlname[5=100] '" + first + "' and admin1 '" + second + "'" + countryQuery + typeQuery);
 			cheshireResult = in.readLine();
 			addResult(cheshireResult);
 
@@ -382,7 +470,7 @@ public class GeoNamesHelper {
 				String stateSN = checkForUSState(first, second);
 				if (stateSN != null) {
 					// Do the query
-					out.println("find exactname[5=100] \"" + first + "\" and admin1 \"" + stateSN + "\"" + countryQuery + typeQuery);
+					out.println("find exactname[5=100] '" + first + "' and admin1 '" + stateSN + "'" + countryQuery + typeQuery);
 					cheshireResult = in.readLine();
 					addResult(cheshireResult);
 				} 
@@ -399,7 +487,7 @@ public class GeoNamesHelper {
 
 					// NOTE: we're going to search for international names, since we may have non-ascii characters such as
 					// umlauts.
-					out.println("find xcountry \"" + countries.get(second) + "\" and xintlname[5=100] @ \"" + first +"\"" + typeQuery);
+					out.println("find xcountry '" + countries.get(second) + "' and xintlname[5=100] @ '" + first +"'" + typeQuery);
 					System.err.println("Searched for country code: " + countries.get(second) + " and placename: " + first + typeQuery);
 					cheshireResult = in.readLine();
 					addResult(cheshireResult);
@@ -408,7 +496,7 @@ public class GeoNamesHelper {
 
 				if (country != null && countries.containsKey(country)) {
 					// redo the last search but with country instead of second
-					out.println("find xcountry \"" + countries.get(country) + "\" and xintlname[5=100] \"" + first +"\"" + typeQuery);
+					out.println("find xcountry '" + countries.get(country) + "' and xintlname[5=100] '" + first +"'" + typeQuery);
 					System.err.println("Searched for country code: " + countries.get(country) + " and placename: " + first + typeQuery);
 					cheshireResult = in.readLine();
 					addResult(cheshireResult);
@@ -449,7 +537,7 @@ public class GeoNamesHelper {
 		String countryQuery = "";
 		// Set up the country, if it exists
 		if (country != null && countries.containsKey(country)) {
-			countryQuery = " and xcountry \"" + countries.get(country) + "\""; 
+			countryQuery = " and xcountry '" + countries.get(country) + "'"; 
 		}
 
 
@@ -465,7 +553,7 @@ public class GeoNamesHelper {
 
 			// Next, try a ranking name query by keyword
 			if (numResults == 0) {
-				out.println("find name @ \"" + first + "\" and admin1 @ \"" + second + "\"" + countryQuery);
+				out.println("find name @ '" + first + "' and admin1 @ '" + second + "'" + countryQuery);
 				cheshireResult = in.readLine();
 				addResult(cheshireResult);
 			}
@@ -480,21 +568,21 @@ public class GeoNamesHelper {
 
 			// (1 above) Next, try a query on just ngrams in the name/admin code plus ranking of exact name (for bad state names)
 			if (numResults == 0) {
-				out.println("find ngram_name_wadmin \"" + query + "\" and exactname @ \"" + first + "\"" + countryQuery);
+				out.println("find ngram_name_wadmin '" + query + "' and exactname @ '" + first + "'" + countryQuery);
 				cheshireResult = in.readLine();
 				addResult(cheshireResult);
 			}
 
 			// Next, try a looking for matching ngrams
 			if (numResults == 0) {
-				out.println("find ngram_wadmin \"" + query + "\" and name_wadmin @ \"" + query + "\"" + countryQuery);
+				out.println("find ngram_wadmin '" + query + "' and name_wadmin @ '" + query + "'" + countryQuery);
 				cheshireResult = in.readLine();
 				addResult(cheshireResult);
 			}
 
 			// Next, try looking for just ngrams and keyword name
 			if (numResults == 0) {
-				out.println("find ngram_wadmin \"" + query + "\" and name @ \"" + first + "\"" + countryQuery);
+				out.println("find ngram_wadmin '" + query + "' and name @ '" + first + "'" + countryQuery);
 				cheshireResult = in.readLine();
 				addResult(cheshireResult);
 			}
@@ -502,7 +590,7 @@ public class GeoNamesHelper {
 			// Finally, just check ngrams
 			if (numResults == 0) {
 				System.err.println("Last ditch search");
-				out.println("find ngram_wadmin \"" + query + "\"" + countryQuery);
+				out.println("find ngram_wadmin '" + query + "'" + countryQuery);
 				cheshireResult = in.readLine();
 				addResult(cheshireResult);
 			}
