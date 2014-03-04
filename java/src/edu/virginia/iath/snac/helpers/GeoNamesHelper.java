@@ -388,10 +388,10 @@ public class GeoNamesHelper {
 			System.err.println("Searching for: " + query + " as 1." + first + "; 2." + second + "; country. " + countries.get(country));
 			
 			// If we have a ppl type (populated place), search for the city first, then use the generic ppl list
-			if (this.type.equals("ppl"))
+			if (type != null && type.equals("ppl"))
 				exactQueries(first, second, country, "pplc");
 			
-			exactQueries(first, second, country, this.type);
+			exactQueries(first, second, country, type);
 			
 
 		}
