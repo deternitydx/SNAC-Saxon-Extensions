@@ -314,7 +314,7 @@ public class GeoNamesHelper {
 	 * Search for a given query string.  This method is what should be called from another class to
 	 * handle the entire query process.  It performs queries in a few steps:
 	 * <ol>
-	 * <li> Look up the query in a list of countries for a match (country name) TODO: ISO
+	 * <li> Look up the query in a list of countries for a match (country name)
 	 * <li> Look up the query in a list of US/Canada states for a match (state name or abbreviation)
 	 * <li> Query Google Map's AutoComplete API for a normalized version of the string (fixes spelling errors)
 	 * <li> Perform exact queries on the Google normalized string
@@ -388,10 +388,10 @@ public class GeoNamesHelper {
 			System.err.println("Searching for: " + query + " as 1." + first + "; 2." + second + "; country. " + countries.get(country));
 			
 			// If we have a ppl type (populated place), search for the city first, then use the generic ppl list
-			if (this.type.equals("ppl"))
+			if (type != null && type.equals("ppl"))
 				exactQueries(first, second, country, "pplc");
 			
-			exactQueries(first, second, country, this.type);
+			exactQueries(first, second, country, type);
 			
 
 		}
