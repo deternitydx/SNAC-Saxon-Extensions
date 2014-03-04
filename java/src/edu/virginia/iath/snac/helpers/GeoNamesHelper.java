@@ -58,7 +58,9 @@ public class GeoNamesHelper {
 	// Maps of relevant places (countries and US states)
 	private Map<String, String> countries = null;
 	private Map<String, String> states = null;
-	private Object type;
+	
+	
+	private String type;
 	
 	// Document parsers for the XML parsing of the results
 	private Document resultDoc;
@@ -384,7 +386,12 @@ public class GeoNamesHelper {
 				}
 			}
 			System.err.println("Searching for: " + query + " as 1." + first + "; 2." + second + "; country. " + countries.get(country));
-			exactQueries(first, second, country);
+			
+			// If we have a ppl type (populated place), search for the city first, then use the generic ppl list
+			if (this.type.equals("ppl"))
+				exactQueries(first, second, country, "pplc");
+			
+			exactQueries(first, second, country, this.type);
 			
 
 		}
@@ -419,9 +426,10 @@ public class GeoNamesHelper {
 	 * @param first First part of the search string (before the comma), usually a place name
 	 * @param second Second part of the search string (after the comma), usually a state
 	 * @param country Country string, in ISO format
+	 * @param type Feature type string
 	 * @return Top Geonames XML result as a String, if found, or null otherwise.
 	 */
-	public String exactQueries(String first, String second, String country) {
+	public String exactQueries(String first, String second, String country, String type) {
 		String cheshireResult = null;
 		String countryQuery = "";
 		String typeQuery = "";
@@ -434,7 +442,7 @@ public class GeoNamesHelper {
 			if (!type.equals("ppl"))
 				typeQuery = " and feature_type '" + type + "'";
 			else
-				typeQuery = " and (feature_type 'ppl' or feature_type 'ppla' or feature_type 'ppla2' or feature_type 'ppla3' or feature_type 'pplc')";
+				typeQuery = " and (feature_type 'ppl' or feature_type 'ppla' or feature_type 'ppla2' or feature_type 'ppla3')";
 		}
 
 		try
