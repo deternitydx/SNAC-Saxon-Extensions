@@ -618,21 +618,21 @@ public class GeoNamesHelper {
 
 			// (1 above) Next, try a query on just ngrams in the name/admin code plus ranking of exact name (for bad state names)
 			if (numResults == 0) {
-				out.println("find ngram_name_wadmin '" + query + "' and exactname @ '" + first + "'" + countryQuery);
+				out.println("find ngram_all_wadmin '" + query + "' and exactname @ '" + first + "'" + countryQuery);
 				cheshireResult = in.readLine();
 				addResult(cheshireResult);
 			}
 
 			// Next, try a looking for matching ngrams
 			if (numResults == 0) {
-				out.println("find ngram_wadmin '" + query + "' and name_wadmin @ '" + query + "'" + countryQuery);
+				out.println("find ngram_all_wadmin '" + query + "' and name_wadmin @ '" + query + "'" + countryQuery);
 				cheshireResult = in.readLine();
 				addResult(cheshireResult);
 			}
 
 			// Next, try looking for just ngrams and keyword name
 			if (numResults == 0) {
-				out.println("find ngram_wadmin '" + query + "' and name @ '" + first + "'" + countryQuery);
+				out.println("find ngram_all '" + query + "' and name @ '" + first + "'" + countryQuery);
 				cheshireResult = in.readLine();
 				addResult(cheshireResult);
 			}
@@ -640,7 +640,7 @@ public class GeoNamesHelper {
 			// Finally, just check ngrams
 			if (numResults == 0) {
 				System.err.println("Last ditch search");
-				out.println("find ngram_wadmin '" + query + "'" + countryQuery);
+				out.println("find ngram_all_wadmin '" + query + "'" + countryQuery);
 				cheshireResult = in.readLine();
 				addResult(cheshireResult);
 			}
