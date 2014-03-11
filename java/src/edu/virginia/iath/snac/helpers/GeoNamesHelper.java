@@ -26,10 +26,12 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -55,6 +57,7 @@ public class GeoNamesHelper {
 	private ArrayList<String> overkill;
 	private ArrayList<String> betterResults;
 	private int numResults = 0;
+	private boolean didNGramsSearch = false;
 
 	// Maps of relevant places (countries and US states)
 	private Map<String, String> countries = null;
@@ -361,7 +364,7 @@ public class GeoNamesHelper {
 		/*******
 		 * The code below searches for exact matches to the query string given.
 		 */
-		/*
+		
 		  System.err.println("Searching for: " + query + " as 1." + first + "; 2." + second);
 		  // City first
 		  exactQueries(first, second, null, "pplc");
@@ -373,13 +376,13 @@ public class GeoNamesHelper {
 		  exactQueries(first, second, null, "adm2");
 		  // Then all others
 		  exactQueries(first, second, null, null);
-		*/
+		
 	
 
 		/**
 		 * The code below searches Google for an autocorrected value and type.
 		 */
-		
+		/**
 		// Query Google for an auto correct and type of place, then query Cheshire for the geonames matches
 		if (this.numResults == 0) {
 			String google = cleanString(this.getGoogleAutoCorrectValue(query), true);
@@ -409,16 +412,33 @@ public class GeoNamesHelper {
 				exactQueries(first, second, country, "pplc");
 			
 			exactQueries(first, second, country, type);
-			
-
 		}
+		**/
 		
 
 		// try the last-ditch effort
 		if (numResults == 0) {
 			System.err.println("Last-ditch searching for: " + query);
+			
+			// Mark that we made it to this undesirable place
+			didNGramsSearch = true;
+			
 			undesiredQueries(first, second, country, query);
-			betterResults = getSimilarLengthResults(first);
+			
+			// perform the better results by doing ngrams matching
+			betterResults = this.getOrderedResultsByNGrams(first, 3);
+			
+			// Could also do better results by strings with length similar to the query string
+			//betterResults =  this.getSimilarLengthResults(first, 4);
+			
+			// If we made it here, then the ordering of betterResults is better than that of the
+			// real results, so we'll replace results with betterResults
+			// TODO: This should be handled better
+			if (betterResults.size() > 0) {
+				results.clear();
+				results.add(betterResults.get(0));
+				results = betterResults;
+			}
 		}
 
 		// Return whether a result was found
@@ -681,7 +701,7 @@ public class GeoNamesHelper {
 	}
 	
 	/**
-	 * Gets all Cheshire results (in Geonames XML format) that were returned.  This method is OVERKILL.
+	 * Gets all Cheshire results (in Geonames XML format) that were returned that are filtered/sorted by ngrams.
 	 * 
 	 * @return String of concatenated XML results from Cheshire.
 	 */
@@ -984,7 +1004,7 @@ public class GeoNamesHelper {
 		try {
 			DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
 			DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-			Document res = dBuilder.parse(new ByteArrayInputStream(results.get(0).getBytes()));
+			Document res = dBuilder.parse(new ByteArrayInputStream(cheshireResult.getBytes()));
 			
 			res.getDocumentElement().normalize();
 			return res.getElementsByTagName("name").item(0).getTextContent();
@@ -999,7 +1019,15 @@ public class GeoNamesHelper {
 	 */
 	
 	
-	private ArrayList<String> getSimilarLengthResults(String first) {
+	/**
+	 * Use the list of all results given by Cheshire and the length of the first part of the query string
+	 * to produce a smaller list of results that only differ *in length* from the first part of the query string by
+	 * <code>diff</code> number of characters.  Preserves order of <code>overkill</code>.
+	 * @param first First part of the query string
+	 * @param diff Number of characters of allowable difference
+	 * @return List of results that are <code>diff</code> number of characters longer/shorter than <code>first</code>
+	 */
+	private ArrayList<String> getSimilarLengthResults(String first, int diff) {
 		// Sanity checks
 		if (first == null)
 			return new ArrayList<String>();
@@ -1012,13 +1040,50 @@ public class GeoNamesHelper {
 		for (String candidateXML : this.overkill) {
 			if (candidateXML != null) {
 				String candidate = getGeonamesName(candidateXML);
-				if (candidate != null && candidate.length() <= strLen + 2 && candidate.length() >= strLen - 2) {
+				if (candidate != null && candidate.length() <= strLen + diff && candidate.length() >= strLen - diff) {
 					sls.add(candidateXML);
 				}
 			}
 		}
 		
 		return sls;
+	}
+	
+	private ArrayList<String> getOrderedResultsByNGrams(String first, int ngramLength) {
+		ArrayList<String> ret = new ArrayList<String>();
+		ArrayList<NGramString> toSort = new ArrayList<NGramString>();
+		
+		NGramString ngramFirst = new NGramString(first.toLowerCase().trim(), ngramLength);
+		System.err.println("Matching on: " + ngramFirst + "\nAdding to list\n======================");
+		
+		// Put each candidate from overkill into the new object
+		for (String candidateXML : this.overkill) {
+			System.err.println(candidateXML);
+			if (candidateXML != null) {
+				String candidate = getGeonamesName(candidateXML);
+				System.err.println(candidate);
+				if (candidate != null) {
+					NGramString tmp = new NGramString(candidate.toLowerCase().replace("(historical)", "").trim(), ngramLength);
+					System.err.println(tmp);
+					tmp.setNGramMaster(ngramFirst);
+					tmp.storeData(candidateXML);
+					toSort.add(tmp);
+				}
+			}
+		}
+		
+		Collections.sort(toSort);
+		
+		System.err.println("Sorted Matches\n=================");
+		
+		for (NGramString sorted : toSort) {
+			System.err.println(sorted);
+			ret.add((String) sorted.getData());
+		}
+		
+		return ret;
+		
 		
 	}
+	
 }
