@@ -52,7 +52,8 @@ public class GeoNamesHelper {
 	private BufferedReader in;
 	private ArrayList<String> results;
 	private HashSet<String> uniqueResults;
-	private HashSet<String> overkill;
+	private ArrayList<String> overkill;
+	private ArrayList<String> betterResults;
 	private int numResults = 0;
 
 	// Maps of relevant places (countries and US states)
@@ -74,7 +75,8 @@ public class GeoNamesHelper {
 		states = getStates();
 		results = new ArrayList<String>();
 		uniqueResults = new HashSet<String>();
-		overkill = new HashSet<String>();
+		overkill = new ArrayList<String>();
+		betterResults = new ArrayList<String>();
 	}
 
 	/**
@@ -357,13 +359,28 @@ public class GeoNamesHelper {
 		}
 
 		/*******
-		 * Going to try doing Google first and see what we get
-		 *
+		 * The code below searches for exact matches to the query string given.
+		 */
+		/*
 		  System.err.println("Searching for: " + query + " as 1." + first + "; 2." + second);
-		  exactQueries(first, second, null);
-		 **/
+		  // City first
+		  exactQueries(first, second, null, "pplc");
+		  // Then populated place
+		  exactQueries(first, second, null, "ppl");
+		  // Then admin 1
+		  exactQueries(first, second, null, "adm1");
+		  // Then admin 2
+		  exactQueries(first, second, null, "adm2");
+		  // Then all others
+		  exactQueries(first, second, null, null);
+		*/
+	
 
-		// If we still haven't got a match yet, then query Google for an auto correct and try again
+		/**
+		 * The code below searches Google for an autocorrected value and type.
+		 */
+		
+		// Query Google for an auto correct and type of place, then query Cheshire for the geonames matches
 		if (this.numResults == 0) {
 			String google = cleanString(this.getGoogleAutoCorrectValue(query), true);
 			System.err.println("Google string: " + google + "; with type: " + type);
@@ -395,11 +412,14 @@ public class GeoNamesHelper {
 			
 
 		}
+		
 
 		// try the last-ditch effort
-		System.err.println("Last-ditch searching for: " + query);
-		undesiredQueries(first, second, country, query);
-
+		if (numResults == 0) {
+			System.err.println("Last-ditch searching for: " + query);
+			undesiredQueries(first, second, country, query);
+			betterResults = getSimilarLengthResults(first);
+		}
 
 		// Return whether a result was found
 		if (results.size() > 0)
@@ -544,9 +564,11 @@ public class GeoNamesHelper {
 		String cheshireResult = null;
 		String countryQuery = "";
 		// Set up the country, if it exists
+		/*
 		if (country != null && countries.containsKey(country)) {
 			countryQuery = " and xcountry '" + countries.get(country) + "'"; 
 		}
+		*/
 
 
 		try
@@ -644,7 +666,7 @@ public class GeoNamesHelper {
 		return result;
 	}
 
-	// OVERKILL (NO ORDER)
+	// OVERKILL
 	/**
 	 * Gets all Cheshire results (in Geonames XML format) that were returned.  This method is OVERKILL.
 	 * 
@@ -657,6 +679,20 @@ public class GeoNamesHelper {
 		}
 		return result;
 	}
+	
+	/**
+	 * Gets all Cheshire results (in Geonames XML format) that were returned.  This method is OVERKILL.
+	 * 
+	 * @return String of concatenated XML results from Cheshire.
+	 */
+	public String getAllFixedUpResultsCheshireEverReturned() {
+		String result = "";
+		for (String res: betterResults) {
+			result += res;
+		}
+		return result;
+	}
+
 
 	/**
 	 * Gets the total number of results.
@@ -936,5 +972,53 @@ public class GeoNamesHelper {
 			resultDoc = null;
 			
 		}
+	}
+	
+	/**
+	 * Parses the given cheshire Geonames XML result and returns the name.
+	 * 
+	 * @param cheshireResult Geonames XML result string.
+	 * @return String name from the result.
+	 */
+	private String getGeonamesName(String cheshireResult) {
+		try {
+			DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+			DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+			Document res = dBuilder.parse(new ByteArrayInputStream(results.get(0).getBytes()));
+			
+			res.getDocumentElement().normalize();
+			return res.getElementsByTagName("name").item(0).getTextContent();
+		} catch (Exception e) {
+			return null;
+			
+		}
+	}
+	
+	/**
+	 *  The following code helps in dealing with ngrams issues
+	 */
+	
+	
+	private ArrayList<String> getSimilarLengthResults(String first) {
+		// Sanity checks
+		if (first == null)
+			return new ArrayList<String>();
+		if (overkill == null || overkill.isEmpty())
+			return new ArrayList<String>();
+		
+		ArrayList<String> sls = new ArrayList<String>();
+		int strLen = first.length();
+		
+		for (String candidateXML : this.overkill) {
+			if (candidateXML != null) {
+				String candidate = getGeonamesName(candidateXML);
+				if (candidate != null && candidate.length() <= strLen + 2 && candidate.length() >= strLen - 2) {
+					sls.add(candidateXML);
+				}
+			}
+		}
+		
+		return sls;
+		
 	}
 }
