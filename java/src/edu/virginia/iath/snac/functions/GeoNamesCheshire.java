@@ -174,8 +174,8 @@ public class GeoNamesCheshire extends ExtensionFunctionDefinition {
 				xml += "<topResult>" + helper.getGeonamesEntry() + "</topResult>";
 				// uncomment these to have all the results
 				xml += "<topResults>" + helper.getAllOrderedResults() + "</topResults>";
-				xml += "<filteredResults>" + helper.getAllFixedUpResultsCheshireEverReturned() + "</filteredResults>";
-				xml += "<allResults>" + helper.getAllResultsCheshireEverReturned() + "</allResults>";
+				//xml += "<filteredResults>" + helper.getAllFixedUpResultsCheshireEverReturned() + "</filteredResults>";
+				//xml += "<allResults>" + helper.getAllResultsCheshireEverReturned() + "</allResults>";
 				xml += "</return>";
 			}
 			else

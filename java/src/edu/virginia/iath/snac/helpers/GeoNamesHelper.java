@@ -616,36 +616,51 @@ public class GeoNamesHelper {
 				System.err.println("Switching to ngrams search.");
 			}
 
+			if (numResults == 0) {
+				System.err.print("generic search\n");
+				out.println("find ngram_wadmin '" + query + "'");
+				cheshireResult = in.readLine();
+				addResult(cheshireResult);
+			}
+
+			/* Just trying an ngram search for now
+
 			// (1 above) Next, try a query on just ngrams in the name/admin code plus ranking of exact name (for bad state names)
 			if (numResults == 0) {
-				out.println("find ngram_all_wadmin '" + query + "' and exactname @ '" + first + "'" + countryQuery);
+				System.err.print(".");
+				out.println("find ngram '" + first + "' and exactname @ '" + first + "'" + countryQuery);
 				cheshireResult = in.readLine();
 				addResult(cheshireResult);
 			}
 
 			// Next, try a looking for matching ngrams
 			if (numResults == 0) {
-				out.println("find ngram_all_wadmin '" + query + "' and name_wadmin @ '" + query + "'" + countryQuery);
+				System.err.print(".");
+				out.println("find ngram '" + first + "' and name_wadmin @ '" + query + "'" + countryQuery);
 				cheshireResult = in.readLine();
 				addResult(cheshireResult);
 			}
 
 			// Next, try looking for just ngrams and keyword name
 			if (numResults == 0) {
-				out.println("find ngram_all '" + query + "' and name @ '" + first + "'" + countryQuery);
+				System.err.print(".");
+				out.println("find ngram '" + first + "' and name @ '" + first + "'" + countryQuery);
 				cheshireResult = in.readLine();
 				addResult(cheshireResult);
 			}
 
 			// Finally, just check ngrams
 			if (numResults == 0) {
-				System.err.println("Last ditch search");
+				System.err.print(".");
+				//System.err.println("Last ditch search");
 				out.println("find ngram_all_wadmin '" + query + "'" + countryQuery);
 				cheshireResult = in.readLine();
 				addResult(cheshireResult);
 			}
 
-
+			
+			System.err.println("");
+			*/
 			//**********************************************************************************************************
 
 			if (results.size() > 0)
@@ -1015,6 +1030,46 @@ public class GeoNamesHelper {
 	}
 	
 	/**
+	 * Parses the given cheshire Geonames XML result and returns the population.
+	 * 
+	 * @param cheshireResult Geonames XML result string.
+	 * @return String population from the result.
+	 */
+	private String getGeonamesPop(String cheshireResult) {
+		try {
+			DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+			DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+			Document res = dBuilder.parse(new ByteArrayInputStream(cheshireResult.getBytes()));
+			
+			res.getDocumentElement().normalize();
+			return res.getElementsByTagName("population").item(0).getTextContent();
+		} catch (Exception e) {
+			return null;
+			
+		}
+	}
+	
+	/**
+	 * Parses the given cheshire Geonames XML result and returns the number of alternate names.
+	 * 
+	 * @param cheshireResult Geonames XML result string.
+	 * @return int number of alternate names.
+	 */
+	private int getGeonamesNumAltNames(String cheshireResult) {
+		try {
+			DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+			DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+			Document res = dBuilder.parse(new ByteArrayInputStream(cheshireResult.getBytes()));
+			
+			res.getDocumentElement().normalize();
+			return res.getElementsByTagName("alt").getLength();
+		} catch (Exception e) {
+			return 0;
+			
+		}
+	}
+	
+	/**
 	 *  The following code helps in dealing with ngrams issues
 	 */
 	
@@ -1058,16 +1113,19 @@ public class GeoNamesHelper {
 		
 		// Put each candidate from overkill into the new object
 		for (String candidateXML : this.overkill) {
-			System.err.println(candidateXML);
+			//System.err.println(candidateXML);
 			if (candidateXML != null) {
 				String candidate = getGeonamesName(candidateXML);
-				System.err.println(candidate);
+				//System.err.println(candidate);
 				if (candidate != null) {
 					NGramString tmp = new NGramString(candidate.toLowerCase().replace("(historical)", "").trim(), ngramLength);
-					System.err.println(tmp);
+					//System.err.println(tmp);
 					tmp.setNGramMaster(ngramFirst);
 					tmp.storeData(candidateXML);
-					toSort.add(tmp);
+					tmp.setPopulation(getGeonamesPop(candidateXML));
+					tmp.setNumAltNames(getGeonamesNumAltNames(candidateXML));
+					if (tmp.getOverlap() > 1)
+						toSort.add(tmp);
 				}
 			}
 		}
