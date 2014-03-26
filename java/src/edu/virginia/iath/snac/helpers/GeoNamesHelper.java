@@ -700,6 +700,25 @@ public class GeoNamesHelper {
 		}
 		return result;
 	}
+	
+
+	// IN ORDER, but may have duplicates
+	/**
+	 * Gets top <code>max</code> Cheshire results (in Geonames XML format), in order based on when they were found.  
+	 * Matches for more exact queries will be first, with the top match first.
+	 * 
+	 * @param max Maximum number of results to return
+	 * @return String of concatenated XML results from Cheshire.
+	 */
+	public String getAllOrderedResults(int max) {
+		String result = "";
+		int i = 0;
+		for (String res : results) {
+			result += res;
+			if (i++ > max) break;
+		}
+		return result;
+	}
 
 	// OVERKILL
 	/**
@@ -794,6 +813,7 @@ public class GeoNamesHelper {
 		result = result.replace(")", "");
 		result = result.replace("]", "");
 		result = result.replace("[", "");
+		result = result.replace(":", "");
 		result = result.trim();
 
 		return result;

@@ -173,7 +173,7 @@ public class GeoNamesCheshire extends ExtensionFunctionDefinition {
 				xml += "<longitude>" + helper.getGeonamesLongitude() + "</longitude>";
 				xml += "<topResult>" + helper.getGeonamesEntry() + "</topResult>";
 				// uncomment these to have all the results
-				xml += "<topResults>" + helper.getAllOrderedResults() + "</topResults>";
+				xml += "<topResults>" + helper.getAllOrderedResults(20) + "</topResults>";
 				//xml += "<filteredResults>" + helper.getAllFixedUpResultsCheshireEverReturned() + "</filteredResults>";
 				//xml += "<allResults>" + helper.getAllResultsCheshireEverReturned() + "</allResults>";
 				xml += "</return>";
