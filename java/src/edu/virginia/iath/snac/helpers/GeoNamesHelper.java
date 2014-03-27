@@ -29,6 +29,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -426,7 +427,7 @@ public class GeoNamesHelper {
 			undesiredQueries(first, second, country, query);
 			
 			// perform the better results by doing ngrams matching
-			betterResults = this.getOrderedResultsByNGrams(first, 3);
+			betterResults = this.getOrderedResultsByNGramsFlexible(first, 3);
 			
 			// Could also do better results by strings with length similar to the query string
 			//betterResults =  this.getSimilarLengthResults(first, 4);
@@ -838,8 +839,9 @@ public class GeoNamesHelper {
 		// Fix for U.S.S.R., which does exist in geonames, but only as a political entity
 		countries.put("ussr", "ru");
 		
-		// Since we seem to have issues matching the united states, let's add it!
+		// Since we seem to have issues matching the united states and mexico, let's add it!
 		countries.put("united states", "us");
+		countries.put("mexico", "mx");
 
 		return countries;
 	}
@@ -1151,6 +1153,59 @@ public class GeoNamesHelper {
 		}
 		
 		Collections.sort(toSort);
+		
+		System.err.println("Sorted Matches\n=================");
+		
+		for (NGramString sorted : toSort) {
+			System.err.println(sorted);
+			ret.add((String) sorted.getData());
+		}
+		
+		return ret;
+		
+		
+	}
+	
+	private ArrayList<String> getOrderedResultsByNGramsFlexible(String first, int ngramLength) {
+		ArrayList<String> ret = new ArrayList<String>();
+		ArrayList<NGramString> toSort = new ArrayList<NGramString>();
+		
+		NGramString ngramFirst = new NGramString(first.toLowerCase().trim(), ngramLength);
+		System.err.println("Matching on: " + ngramFirst + "\nAdding to list\n======================");
+		
+		// Put each candidate from overkill into the new object
+		for (String candidateXML : this.overkill) {
+			//System.err.println(candidateXML);
+			if (candidateXML != null) {
+				String candidate = getGeonamesName(candidateXML);
+				//System.err.println(candidate);
+				if (candidate != null) {
+					NGramString tmp = new NGramString(candidate.toLowerCase().replace("(historical)", "").trim(), ngramLength);
+					//System.err.println(tmp);
+					tmp.setNGramMaster(ngramFirst);
+					tmp.storeData(candidateXML);
+					tmp.setPopulation(getGeonamesPop(candidateXML));
+					tmp.setNumAltNames(getGeonamesNumAltNames(candidateXML));
+					if (tmp.getOverlap() > 1)
+						toSort.add(tmp);
+				}
+			}
+		}
+		
+		Collections.sort(toSort);
+		
+		int maxOverlap = toSort.get(0).getOverlap();
+		int flexOverlap = maxOverlap - 2;
+		
+		// Remove all items that have overlap less than flexOverlap
+		Iterator<NGramString> itr = toSort.iterator();
+		while (itr.hasNext()) {
+			NGramString cur = itr.next();
+			if (cur.getOverlap() < flexOverlap)
+				itr.remove(); 
+		}
+		
+		Collections.sort(toSort, new FlexibleNGramsComparator());
 		
 		System.err.println("Sorted Matches\n=================");
 		

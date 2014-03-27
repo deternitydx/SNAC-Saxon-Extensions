@@ -36,8 +36,20 @@ public class NGramString implements Comparable<NGramString> {
 		}
 	}
 	
+	public int getPopulation() {
+		return this.population;
+	}
+	
 	public void setNumAltNames(int n) {
 		this.altnames = n;
+	}
+	
+	public int getNumAltNames() {
+		return this.altnames;
+	}
+	
+	public int getStringLength() {
+		return this.string.length();
 	}
 	
 	public Object getData() {
