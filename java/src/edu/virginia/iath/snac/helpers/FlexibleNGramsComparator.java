@@ -13,16 +13,16 @@ public class FlexibleNGramsComparator implements Comparator<NGramString> {
 		// Assume we're only considering similar overlapping ngrams, so we're not going to sort by ngram overlap
 
 		// Sorting method:
-		// 1. Sort by string length (ascending)
-		// 2. Sort by number of alternate names (descending)
+		// 1. Sort by number of alternate names (descending)
+		// 2. Sort by string length (ascending)
 		// 3. Sort by population (descending)
-		if ( o1.getStringLength() == o2.getStringLength() ) {
-			if (o1.getNumAltNames() == o2.getNumAltNames()){
+		if (o1.getNumAltNames() == o2.getNumAltNames()){
+			if ( o1.getStringLength() == o2.getStringLength() ) {
 				return o2.getPopulation() - o1.getPopulation();
 			}
-			return o2.getNumAltNames() - o1.getNumAltNames();
+			return o1.getStringLength() - o2.getStringLength();
 		}
-		return o1.getStringLength() - o2.getStringLength();
+		return o2.getNumAltNames() - o1.getNumAltNames();
 	}
 
 

@@ -48,9 +48,23 @@
       <xsl:param name="geostring"/>
       <xsl:variable name="location" select="saxext:geonames-cheshire($geostring)"/>
 	  <placeEntry>
-		<xsl:attribute name="original" select="$geostring"/>
-		<xsl:attribute name="normalized" select="$location/return/name"/>
-		<xsl:attribute name="geonameid" select="$location/return/geonameid"/>
+		<xsl:choose>
+			<xsl:when test="$location/return/score > 0.01 or $location/return/searchLevel = 0">
+				<xsl:attribute name="original" select="$geostring"/>
+				<xsl:attribute name="normalized" select="$location/return/name"/>
+				<xsl:attribute name="geonameid" select="$location/return/geonameid"/>
+				<xsl:attribute name="confidence" select="normalize-space($location/return/score)"/>
+				<xsl:attribute name="level" select="$location/return/searchLevel"/>
+			</xsl:when>
+			<xsl:otherwise>
+                                <xsl:attribute name="original" select="$geostring"/>
+				<xsl:attribute name="normalized" select="$location/return/name"/>
+                                <xsl:attribute name="geonameid" select="null"/>
+				<xsl:attribute name="confidence" select="normalize-space($location/return/score)"/>
+				<xsl:attribute name="level" select="$location/return/searchLevel"/>
+			</xsl:otherwise>
+		</xsl:choose>
+
 		<xsl:copy-of select="$location/return/node()"/>
 	  </placeEntry>
     </xsl:template>

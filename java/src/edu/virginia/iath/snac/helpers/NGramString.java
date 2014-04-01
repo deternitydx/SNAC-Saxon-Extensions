@@ -10,6 +10,7 @@ public class NGramString implements Comparable<NGramString> {
 	private Set<String> ngrams;
 	private NGramString master;
 	private int overlapWithMaster;
+	private int differenceFromMaster;
 	private Object data;
 	private int population;
 	private int altnames;
@@ -20,6 +21,7 @@ public class NGramString implements Comparable<NGramString> {
 		ngrams = generateNGrams(string);
 		master = null;
 		overlapWithMaster = 0;
+		differenceFromMaster = Integer.MAX_VALUE;
 		population = 0;
 		altnames = 0;
 	}
@@ -78,10 +80,16 @@ public class NGramString implements Comparable<NGramString> {
 	public int getOverlap() { 
 		return overlapWithMaster;
 	}
+	
+	public int getDifference() {
+		return differenceFromMaster;
+	}
 
 	public void setNGramMaster(NGramString query) {
 		master = query;
 		overlapWithMaster = getNGramOverlap(query);
+		differenceFromMaster = (this.ngrams.size() - overlapWithMaster) // number of extra ngrams in this string
+								+ (query.ngrams.size() - overlapWithMaster); // number of extra ngrams in the query string
 	}
 
 	@Override
@@ -96,7 +104,7 @@ public class NGramString implements Comparable<NGramString> {
 		
 		NGramString other = (NGramString) o;
 		
-		// Sort first by ngram overlap with master, then by string length
+		// Sort first by ngram overlap with master, then by difference from master
 		
 		// if this has more overlap, it should come first
 		if (this.overlapWithMaster > other.overlapWithMaster)
@@ -104,32 +112,26 @@ public class NGramString implements Comparable<NGramString> {
 		// if other has more overlap, it should come first
 		else if (other.overlapWithMaster > this.overlapWithMaster)
 			return 1;
-		// lastly, if equal, sort by string length (shorter strings should come first)
+		// lastly, if equal, sort by difference from master
 		else {
-			// if string lengths are equal, then the population should be the sort (desc)
-			if ( this.string.length() == other.string.length() ) {
+			// if string lengths are equal, then sort by number of alternate names
+			if ( this.differenceFromMaster == other.differenceFromMaster ) {
 				if (this.altnames == other.altnames){
 					return other.population - this.population;
 				}
 				return other.altnames - this.altnames;
-				
-				/**
-				 * sorting by alt names, then by population (to test)
-				 *
-				if (this.population == other.population) {
-					// if populations are equal, sort desc by number of alternate names
-					return other.altnames - this.altnames;
-				}
-				return other.population - this.population;
-				*/
 			}
-			return this.string.length() - other.string.length();
+			return this.differenceFromMaster - other.differenceFromMaster;
 		}
 	}
 	
 	@Override
 	public String toString() {
 		return "[str=" + string + ", overlap=" + overlapWithMaster + "]";
+	}
+	
+	public String getString() {
+		return string;
 	}
 	
 	

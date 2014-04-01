@@ -164,9 +164,10 @@ public class GeoNamesCheshire extends ExtensionFunctionDefinition {
 			// Build the result
 			if (success) {
 				// Build an XML object out of the results
-				xml = "<return original=\""+locationStr+"\" confidence=\"" + helper.getConfidence() + "\">";
+				xml = "<return original=\""+locationStr+"\" score=\"" + helper.getConfidence() + "\">";
 				//xml += "<![CDATA[" + result + "]]>";
-				xml += "<confidence>" + helper.getConfidence() + "</confidence>";
+				xml += "<score>" + helper.getConfidence() + "</score>";
+				xml += "<searchLevel>" + helper.getLevelOfSearch() + "</searchLevel>";
 				xml += "<geonameid>" + helper.getGeonamesId() + "</geonameid>";
 				xml += "<name>" + helper.getGeonamesName() + "</name>";
 				xml += "<latitude>" + helper.getGeonamesLatitude() + "</latitude>";

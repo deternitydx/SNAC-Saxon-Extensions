@@ -59,17 +59,18 @@ public class GeoNamesHelper {
 	private ArrayList<String> betterResults;
 	private int numResults = 0;
 	private boolean didNGramsSearch = false;
+	private double discountConfidence = 1;
 
 	// Maps of relevant places (countries and US states)
 	private Map<String, String> countries = null;
 	private Map<String, String> states = null;
-	
-	
+
+
 	private String type;
-	
+
 	// Document parsers for the XML parsing of the results
 	private Document resultDoc;
-	
+
 
 	/**
 	 * Default Constructor: Initializes all lists and pre-fills country and state lookup maps.
@@ -124,6 +125,13 @@ public class GeoNamesHelper {
 			// do nothing
 		}
 		return true;
+	}
+	
+	public int getLevelOfSearch() {
+		if (this.didNGramsSearch) {
+			return 1;
+		}
+		return 0;
 	}
 
 	/**
@@ -248,7 +256,7 @@ public class GeoNamesHelper {
 				// quotes still treat it as the cheshire command (no escaping).
 				// 2/3/14 Replaced the @ with a direct serach on country and an exact (no truncating) match
 				//   on the country name.  This fixes US, but hopefully doesn't break any others.
-				out.println("find xcountry '" + countries.get(query) + "' and xintlname[5=100] '" + query +"'");
+				out.println("find xcountry '" + countries.get(query) + "' and xintlname[5=100] '" + query +"' and feature_type 'pcli'");
 				System.err.println("Searched for country code: " + countries.get(query) + " and country: " + query);
 				cheshireResult = in.readLine();
 				System.err.println(cheshireResult);
@@ -260,13 +268,13 @@ public class GeoNamesHelper {
 					if (countries.get(key).equals(query))
 						countryName = key;
 				}
-				out.println("find xcountry '" + query + "' and xintlname[5=100] '" + countryName +"'");
+				out.println("find xcountry '" + query + "' and xintlname[5=100] '" + countryName +"' and feature_type 'pcli'");
 				System.err.println("Searched for country code: " + query + " and country: " + countryName);
 				cheshireResult = in.readLine();
 				System.err.println(cheshireResult);
 				addResult(cheshireResult);
 				return true;
-				
+
 			}
 		} catch (Exception e) {
 			return false;
@@ -315,7 +323,7 @@ public class GeoNamesHelper {
 		return false;
 	}
 
-	
+
 	/**
 	 * Search for a given query string.  This method is what should be called from another class to
 	 * handle the entire query process.  It performs queries in a few steps:
@@ -340,8 +348,8 @@ public class GeoNamesHelper {
 		/*******************
 		 * Start by searching for countries, then for states
 		 */
-		searchForCountry(query);
 		searchForState(query);
+		searchForCountry(query);
 
 
 		/*******************
@@ -365,20 +373,20 @@ public class GeoNamesHelper {
 		/*******
 		 * The code below searches for exact matches to the query string given.
 		 */
-		
-		  System.err.println("Searching for: " + query + " as 1." + first + "; 2." + second);
-		  // City first
-		  exactQueries(first, second, null, "pplc");
-		  // Then populated place
-		  exactQueries(first, second, null, "ppl");
-		  // Then admin 1
-		  exactQueries(first, second, null, "adm1");
-		  // Then admin 2
-		  exactQueries(first, second, null, "adm2");
-		  // Then all others
-		  exactQueries(first, second, null, null);
-		
-	
+
+		System.err.println("Searching for: " + query + " as 1." + first + "; 2." + second);
+		// City first
+		exactQueries(first, second, null, "pplc");
+		// Then populated place
+		exactQueries(first, second, null, "ppl");
+		// Then admin 1
+		exactQueries(first, second, null, "adm1");
+		// Then admin 2
+		exactQueries(first, second, null, "adm2");
+		// Then all others
+		exactQueries(first, second, null, null);
+
+
 
 		/**
 		 * The code below searches Google for an autocorrected value and type.
@@ -407,31 +415,35 @@ public class GeoNamesHelper {
 				}
 			}
 			System.err.println("Searching for: " + query + " as 1." + first + "; 2." + second + "; country. " + countries.get(country));
-			
+
 			// If we have a ppl type (populated place), search for the city first, then use the generic ppl list
 			if (type != null && type.equals("ppl"))
 				exactQueries(first, second, country, "pplc");
-			
+
 			exactQueries(first, second, country, type);
 		}
-		**/
-		
+		 **/
+
 
 		// try the last-ditch effort
 		if (numResults == 0) {
 			System.err.println("Last-ditch searching for: " + query);
-			
+
 			// Mark that we made it to this undesirable place
 			didNGramsSearch = true;
-			
+
 			undesiredQueries(first, second, country, query);
-			
+
 			// perform the better results by doing ngrams matching
-			betterResults = this.getOrderedResultsByNGramsFlexible(first, 3);
-			
+			//betterResults = this.getOrderedResultsByNGrams(first, 3);
+
+
+			// perform the better results by doing ngrams matching: order by least difference from ngrams
+			betterResults = this.getOrderedResultsByNGramsDifference(first, 3);
+
 			// Could also do better results by strings with length similar to the query string
 			//betterResults =  this.getSimilarLengthResults(first, 4);
-			
+
 			// If we made it here, then the ordering of betterResults is better than that of the
 			// real results, so we'll replace results with betterResults
 			// TODO: This should be handled better
@@ -478,7 +490,7 @@ public class GeoNamesHelper {
 		if (country != null && countries.containsKey(country)) {
 			countryQuery = " and xcountry '" + countries.get(country) + "'"; 
 		}
-		
+
 		if (type != null) {
 			if (!type.equals("ppl"))
 				typeQuery = " and feature_type '" + type + "'";
@@ -541,7 +553,7 @@ public class GeoNamesHelper {
 					cheshireResult = in.readLine();
 					addResult(cheshireResult);
 				}
-				
+
 
 				if (country != null && countries.containsKey(country)) {
 					// redo the last search but with country instead of second
@@ -589,7 +601,7 @@ public class GeoNamesHelper {
 		if (country != null && countries.containsKey(country)) {
 			countryQuery = " and xcountry '" + countries.get(country) + "'"; 
 		}
-		*/
+		 */
 
 
 		try
@@ -659,9 +671,9 @@ public class GeoNamesHelper {
 				addResult(cheshireResult);
 			}
 
-			
+
 			System.err.println("");
-			*/
+			 */
 			//**********************************************************************************************************
 
 			if (results.size() > 0)
@@ -701,7 +713,7 @@ public class GeoNamesHelper {
 		}
 		return result;
 	}
-	
+
 
 	// IN ORDER, but may have duplicates
 	/**
@@ -734,7 +746,7 @@ public class GeoNamesHelper {
 		}
 		return result;
 	}
-	
+
 	/**
 	 * Gets all Cheshire results (in Geonames XML format) that were returned that are filtered/sorted by ngrams.
 	 * 
@@ -779,18 +791,37 @@ public class GeoNamesHelper {
 
 		// return (1.0) / (numResults - (double) uniqueResults.size());
 
-		// confidence now is defined as 
-		//     (number of times top result appeared) / numResults.  
-		// 
-		int count = 0;
-		String result = results.get(0);
+		if (!this.didNGramsSearch) {
+			// EXACT SEARCHES
+			// This method of confidence is only when an exact search returned our result.
+			//   Define the standard confidence of our exact search.  This means that we found multiple exact matches,
+			//   such as country and state, city and state, etc.
+			//     (number of times top result appeared) / numResults.  
+			// 
+			int count = 0;
+			String result = results.get(0);
 
-		for (String res : results) {
-			if (result.equals(res))
-				count++;
+			// For each XML result, check to see how many times the top result was selected.  We only want to count
+			// unique results.  But, we want to favor our result if it appeared multiple times in our searches,
+			// so we won't use 1 / numberUniqueResults. (The more times it shows up, the more confident we are).
+			for (String res : results) {
+				if (result.equals(res))
+					count++;
+			}
+
+			return ((double) count) / numResults;
+		} else {
+			// NGRAMS SEARCHES
+			// These searches return many many more results than we should count, and therefore the standard
+			// 1/numResults will return a bogus confidence, always around .0001.  So, we must consider a different
+			// method of confidence in this case.
+			//   Define the confidence of ngrams as 1 / number of similar results found.  We can ignore most results.
+			
+			// Number of similar results are stored in numResults (by the cleanup method of betterResults)
+
+			return (1.0 / numResults) * discountConfidence;
+
 		}
-
-		return ((double) count) / numResults;
 
 	}
 
@@ -807,7 +838,7 @@ public class GeoNamesHelper {
 		//Normalize the string
 		if (periodToSpace)
 			result = result.toLowerCase().replaceAll("\\.", " ");
-		
+
 		result = result.toLowerCase().replaceAll("\\.", "");
 		// Clean up the string
 		result = result.replace("(", "");
@@ -815,6 +846,15 @@ public class GeoNamesHelper {
 		result = result.replace("]", "");
 		result = result.replace("[", "");
 		result = result.replace(":", "");
+
+		// Remove possessives:
+		result = result.replace("'s", "");
+		result = result.replace("'s", "");
+		
+		result = result.replace("&quot;", "");
+		result = result.replace("&apos;s", "");
+
+		// Trim the string
 		result = result.trim();
 
 		return result;
@@ -838,7 +878,7 @@ public class GeoNamesHelper {
 
 		// Fix for U.S.S.R., which does exist in geonames, but only as a political entity
 		countries.put("ussr", "ru");
-		
+
 		// Since we seem to have issues matching the united states and mexico, let's add it!
 		countries.put("united states", "us");
 		countries.put("mexico", "mx");
@@ -943,10 +983,10 @@ public class GeoNamesHelper {
 			return null;
 		if (type2.equals("natural_feature"))
 			return null;
-		
+
 		return null;
 	}
-	
+
 	/**
 	 * Gets the top Geonames result, in Geonames XML format
 	 * 
@@ -957,7 +997,7 @@ public class GeoNamesHelper {
 			return results.get(0);
 		return null;
 	} 
-	
+
 	/**
 	 * Parses out and returns the geonames id from the top Geonames result
 	 * 
@@ -971,7 +1011,7 @@ public class GeoNamesHelper {
 		}
 		return null;
 	}
-	
+
 	/**
 	 * Parses out and returns the name from the top Geonames result
 	 * 
@@ -985,7 +1025,7 @@ public class GeoNamesHelper {
 		}
 		return null;
 	}
-	
+
 	/**
 	 * Parses out and returns the latitude from the top Geonames result
 	 * 
@@ -999,7 +1039,7 @@ public class GeoNamesHelper {
 		}
 		return null;
 	}
-	
+
 	/**
 	 * Parses out and returns the longitude from the top Geonames result
 	 * 
@@ -1013,7 +1053,7 @@ public class GeoNamesHelper {
 		}
 		return null;
 	}
-	
+
 	/**
 	 *  Parses the resulting Geonames XML row into the Document object resultDoc for later use.
 	 */
@@ -1022,15 +1062,15 @@ public class GeoNamesHelper {
 			DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
 			DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
 			resultDoc = dBuilder.parse(new ByteArrayInputStream(results.get(0).getBytes()));
-			
+
 			resultDoc.getDocumentElement().normalize();
-			
+
 		} catch (Exception e) {
 			resultDoc = null;
-			
+
 		}
 	}
-	
+
 	/**
 	 * Parses the given cheshire Geonames XML result and returns the name.
 	 * 
@@ -1042,15 +1082,15 @@ public class GeoNamesHelper {
 			DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
 			DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
 			Document res = dBuilder.parse(new ByteArrayInputStream(cheshireResult.getBytes()));
-			
+
 			res.getDocumentElement().normalize();
 			return res.getElementsByTagName("name").item(0).getTextContent();
 		} catch (Exception e) {
 			return null;
-			
+
 		}
 	}
-	
+
 	/**
 	 * Parses the given cheshire Geonames XML result and returns the population.
 	 * 
@@ -1062,15 +1102,15 @@ public class GeoNamesHelper {
 			DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
 			DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
 			Document res = dBuilder.parse(new ByteArrayInputStream(cheshireResult.getBytes()));
-			
+
 			res.getDocumentElement().normalize();
 			return res.getElementsByTagName("population").item(0).getTextContent();
 		} catch (Exception e) {
 			return null;
-			
+
 		}
 	}
-	
+
 	/**
 	 * Parses the given cheshire Geonames XML result and returns the number of alternate names.
 	 * 
@@ -1082,20 +1122,20 @@ public class GeoNamesHelper {
 			DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
 			DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
 			Document res = dBuilder.parse(new ByteArrayInputStream(cheshireResult.getBytes()));
-			
+
 			res.getDocumentElement().normalize();
 			return res.getElementsByTagName("alt").getLength();
 		} catch (Exception e) {
 			return 0;
-			
+
 		}
 	}
-	
+
 	/**
 	 *  The following code helps in dealing with ngrams issues
 	 */
-	
-	
+
+
 	/**
 	 * Use the list of all results given by Cheshire and the length of the first part of the query string
 	 * to produce a smaller list of results that only differ *in length* from the first part of the query string by
@@ -1110,10 +1150,10 @@ public class GeoNamesHelper {
 			return new ArrayList<String>();
 		if (overkill == null || overkill.isEmpty())
 			return new ArrayList<String>();
-		
+
 		ArrayList<String> sls = new ArrayList<String>();
 		int strLen = first.length();
-		
+
 		for (String candidateXML : this.overkill) {
 			if (candidateXML != null) {
 				String candidate = getGeonamesName(candidateXML);
@@ -1122,17 +1162,17 @@ public class GeoNamesHelper {
 				}
 			}
 		}
-		
+
 		return sls;
 	}
-	
+
 	private ArrayList<String> getOrderedResultsByNGrams(String first, int ngramLength) {
 		ArrayList<String> ret = new ArrayList<String>();
 		ArrayList<NGramString> toSort = new ArrayList<NGramString>();
-		
+
 		NGramString ngramFirst = new NGramString(first.toLowerCase().trim(), ngramLength);
 		System.err.println("Matching on: " + ngramFirst + "\nAdding to list\n======================");
-		
+
 		// Put each candidate from overkill into the new object
 		for (String candidateXML : this.overkill) {
 			//System.err.println(candidateXML);
@@ -1151,28 +1191,28 @@ public class GeoNamesHelper {
 				}
 			}
 		}
-		
+
 		Collections.sort(toSort);
-		
+
 		System.err.println("Sorted Matches\n=================");
-		
+
 		for (NGramString sorted : toSort) {
 			System.err.println(sorted);
 			ret.add((String) sorted.getData());
 		}
-		
+
 		return ret;
-		
-		
+
+
 	}
-	
-	private ArrayList<String> getOrderedResultsByNGramsFlexible(String first, int ngramLength) {
+
+	private ArrayList<String> getOrderedResultsByNGramsDifference(String first, int ngramLength) {
 		ArrayList<String> ret = new ArrayList<String>();
 		ArrayList<NGramString> toSort = new ArrayList<NGramString>();
-		
+
 		NGramString ngramFirst = new NGramString(first.toLowerCase().trim(), ngramLength);
-		System.err.println("Matching on: " + ngramFirst + "\nAdding to list\n======================");
-		
+		//System.err.println("Matching on: " + ngramFirst + "\nAdding to list\n======================");
+
 		// Put each candidate from overkill into the new object
 		for (String candidateXML : this.overkill) {
 			//System.err.println(candidateXML);
@@ -1191,12 +1231,91 @@ public class GeoNamesHelper {
 				}
 			}
 		}
-		
+
+		Collections.sort(toSort, new DifferenceNGramsComparator());
+
+		//System.err.println("Sorted Matches\n=================");
+
+		for (NGramString sorted : toSort) {
+			//System.err.println(sorted);
+			ret.add((String) sorted.getData());
+		}
+
+		// Do some number crunching for the confidence information
+		if (toSort.size() > 0) {
+			int count = 0;
+			if (toSort.get(0).getString().equals(ngramFirst.getString())) { 
+				// we have an exact match at top! So, only count the number of exact names present.
+				// This is simplified, since we might have matched an alternate name.
+				for (NGramString str : toSort) {
+					if (str.getString().equals(ngramFirst.getString())) {
+						count++;
+					}
+				}
+			} else {
+				int curOverlap = toSort.get(0).getOverlap();
+				int curDiff = toSort.get(0).getDifference();
+				int stepDown = 0;
+				for (NGramString str : toSort) {
+					if (str.getOverlap() != curOverlap || str.getDifference() != curDiff) {
+						if (stepDown > 2) break; // if we've passed two steps down, then quit.
+						stepDown++;
+						curOverlap = str.getOverlap();
+						curDiff = str.getDifference();
+					}
+					count++;
+				}
+			}
+			this.numResults = count;
+			
+			if (toSort.get(0).getString().replace(" ", "").equals(ngramFirst.getString().replace(" ", "")))
+				this.discountConfidence  = 1;
+			else if (toSort.get(0).getString().replace(" ", "").contains(ngramFirst.getString().replace(" ", "")))
+				this.discountConfidence  = 0.1;
+			else 
+				this.discountConfidence  = 0.01;
+			
+		}	
+
+
+
+	return ret;
+
+
+}
+
+private ArrayList<String> getOrderedResultsByNGramsFlexible(String first, int ngramLength) {
+	ArrayList<String> ret = new ArrayList<String>();
+	ArrayList<NGramString> toSort = new ArrayList<NGramString>();
+
+	NGramString ngramFirst = new NGramString(first.toLowerCase().trim(), ngramLength);
+	//System.err.println("Matching on: " + ngramFirst + "\nAdding to list\n======================");
+
+	// Put each candidate from overkill into the new object
+	for (String candidateXML : this.overkill) {
+		//System.err.println(candidateXML);
+		if (candidateXML != null) {
+			String candidate = getGeonamesName(candidateXML);
+			//System.err.println(candidate);
+			if (candidate != null) {
+				NGramString tmp = new NGramString(candidate.toLowerCase().replace("(historical)", "").trim(), ngramLength);
+				//System.err.println(tmp);
+				tmp.setNGramMaster(ngramFirst);
+				tmp.storeData(candidateXML);
+				tmp.setPopulation(getGeonamesPop(candidateXML));
+				tmp.setNumAltNames(getGeonamesNumAltNames(candidateXML));
+				if (tmp.getOverlap() > 1)
+					toSort.add(tmp);
+			}
+		}
+	}
+
+	if (!toSort.isEmpty()) {
 		Collections.sort(toSort);
-		
+
 		int maxOverlap = toSort.get(0).getOverlap();
-		int flexOverlap = maxOverlap - 2;
-		
+		int flexOverlap = maxOverlap - 1;
+
 		// Remove all items that have overlap less than flexOverlap
 		Iterator<NGramString> itr = toSort.iterator();
 		while (itr.hasNext()) {
@@ -1204,19 +1323,20 @@ public class GeoNamesHelper {
 			if (cur.getOverlap() < flexOverlap)
 				itr.remove(); 
 		}
-		
+
 		Collections.sort(toSort, new FlexibleNGramsComparator());
-		
-		System.err.println("Sorted Matches\n=================");
-		
+
+		//System.err.println("Sorted Matches\n=================");
+
 		for (NGramString sorted : toSort) {
-			System.err.println(sorted);
+			//System.err.println(sorted);
 			ret.add((String) sorted.getData());
 		}
-		
-		return ret;
-		
-		
 	}
-	
+
+	return ret;
+
+
+}
+
 }
