@@ -49,7 +49,7 @@
       <xsl:variable name="location" select="saxext:geonames-cheshire($geostring)"/>
 	  <placeEntry>
 		<xsl:choose>
-			<xsl:when test="$location/return/score > 0.01 or $location/return/searchLevel = 0">
+			<xsl:when test="$location/return/score > 0.005 or $location/return/searchLevel = 0">
 				<xsl:attribute name="original" select="$geostring"/>
 				<xsl:attribute name="normalized" select="$location/return/name"/>
 				<xsl:attribute name="geonameid" select="$location/return/geonameid"/>
