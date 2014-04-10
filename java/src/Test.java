@@ -29,7 +29,7 @@ import net.sf.saxon.s9api.XdmNode;
 
 import edu.virginia.iath.snac.helpers.DateParserHelper;
 import edu.virginia.iath.snac.helpers.GeoNamesHelper;
-import edu.virginia.iath.snac.helpers.SNACDate;
+import edu.virginia.iath.snac.helpers.datastructures.SNACDate;
 
 
 public class Test {

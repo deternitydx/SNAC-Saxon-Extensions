@@ -29,7 +29,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import edu.virginia.iath.snac.helpers.DateParserHelper;
-import edu.virginia.iath.snac.helpers.SNACDate;
+import edu.virginia.iath.snac.helpers.datastructures.SNACDate;
 
 //Saxon Imports
 import net.sf.saxon.lib.ExtensionFunctionCall;

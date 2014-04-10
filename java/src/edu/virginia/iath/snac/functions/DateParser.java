@@ -24,7 +24,7 @@ import javax.xml.transform.stream.StreamSource;
 import org.apache.commons.lang3.StringEscapeUtils;
 
 import edu.virginia.iath.snac.helpers.DateParserHelper;
-import edu.virginia.iath.snac.helpers.SNACDate;
+import edu.virginia.iath.snac.helpers.datastructures.SNACDate;
 
 //Saxon Imports
 import net.sf.saxon.lib.ExtensionFunctionCall;

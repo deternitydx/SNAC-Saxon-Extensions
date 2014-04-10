@@ -29,7 +29,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import edu.virginia.iath.snac.helpers.DateParserHelper;
-import edu.virginia.iath.snac.helpers.SNACDate;
+import edu.virginia.iath.snac.helpers.datastructures.SNACDate;
 
 //Saxon Imports
 import net.sf.saxon.lib.ExtensionFunctionCall;

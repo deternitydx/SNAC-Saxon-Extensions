@@ -14,7 +14,7 @@
  *
  *
  */
-package edu.virginia.iath.snac.helpers;
+package edu.virginia.iath.snac.helpers.datastructures;
 
 import java.text.ParseException;
 import java.util.ArrayList;
