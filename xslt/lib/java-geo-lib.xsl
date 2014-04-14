@@ -49,7 +49,10 @@
       <xsl:variable name="location" select="saxext:geonames-cheshire($geostring)"/>
 	  <placeEntry>
 		<xsl:choose>
-			<xsl:when test="$location/return/score > 0.005 or $location/return/searchLevel = 0">
+			<!-- The below cutoff is the tradeoff between false positives and false negatives.  0.5
+				would eliminate all nearly all false positives.  At 0.06, empirically I see
+				2% false positives and 31% unmatched (not all false negatives) -->
+			<xsl:when test="$location/return/score > 0.06 or $location/return/searchLevel = 0">
 				<xsl:attribute name="original" select="$geostring"/>
 				<xsl:attribute name="normalized" select="$location/return/name"/>
 				<xsl:attribute name="geonameid" select="$location/return/geonameid"/>
