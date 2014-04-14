@@ -103,10 +103,30 @@ public class GeoNamesCheshire extends ExtensionFunctionDefinition {
 		 * 
 		 * The function will return valid XML, consisting of:
 		 * 
-		 * <return>
-		 * 		...
+		 * <pre>
+		 * {@code
+		 * <return original="Original Query String" score="Confidence">
+		 * 		<score>Confidence Score</score>
+		 * 		<name>Normalized Place Name</name>
+		 * 		<geonameId>GeoNames Place ID</geonameId>
+		 * 		<admin1>Administrative 1 Code</admin1>
+		 * 		<country>2-digit Country Code</country>
+		 * 		<latitude>Latitude</latitude>
+		 * 		<longitude>Longitude</longitude>
+		 * 		<topResults>
+		 * 			<place>
+		 * 				<name>Normalized Place Name</name>
+		 * 				<geonameId>GeoNames Place ID</geonameId>
+		 * 				<admin1>Administrative 1 Code</admin1>
+		 * 				<country>2-digit Country Code</country>
+		 * 				<latitude>Latitude</latitude>
+		 * 				<longitude>Longitude</longitude>
+		 * 			</place>
+		 * 			...
+		 * 		</topResults>
 		 * </return>
-		 * 
+		 * }
+		 * </pre>
 		 * 
 		 * 
 		 * @param context the context of the call
@@ -147,16 +167,10 @@ public class GeoNamesCheshire extends ExtensionFunctionDefinition {
 				// Build an XML object out of the results
 				xml = "<return original=\""+locationStr+"\" score=\"" + helper.getConfidence() + "\">";
 				xml += "<score>" + helper.getConfidence() + "</score>";
-				xml += "<searchLevel>" + helper.getLevelOfSearch() + "</searchLevel>";
-				xml += "<geonameid>" + helper.getGeonamesId() + "</geonameid>";
-				xml += "<name>" + helper.getGeonamesName() + "</name>";
-				xml += "<latitude>" + helper.getGeonamesLatitude() + "</latitude>";
-				xml += "<longitude>" + helper.getGeonamesLongitude() + "</longitude>";
-				xml += "<topResult>" + helper.getGeonamesEntry() + "</topResult>";
-				// uncomment these to have all the results
-				xml += "<topResults>" + helper.getAllOrderedResults(20) + "</topResults>";
-				//xml += "<filteredResults>" + helper.getAllFixedUpResultsCheshireEverReturned() + "</filteredResults>";
-				//xml += "<allResults>" + helper.getAllResultsCheshireEverReturned() + "</allResults>";
+				//xml += "<searchLevel>" + helper.getLevelOfSearch() + "</searchLevel>";
+				xml += helper.getTopReturnResult();
+				xml += "<topResults>" + helper.getTopReturnResults(20) + "</topResults>";
+				
 				xml += "</return>";
 			}
 			else

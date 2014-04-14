@@ -1235,6 +1235,61 @@ public class GeoNamesHelper {
 
 		}
 	}
+	
+	/**
+	 * Parses the given cheshire Geonames XML result and creates the return XML for this object.
+	 * 
+	 * @param cheshireResult Geonames XML result string.
+	 * @return String return XML of the geonames string
+	 */
+	private String getXMLReturnValue(String cheshireResult) {
+		try {
+			DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+			DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+			Document res = dBuilder.parse(new ByteArrayInputStream(cheshireResult.getBytes()));
+
+			res.getDocumentElement().normalize();
+			
+			String ret = "";
+			ret += "<geonameId>" + res.getElementsByTagName("geonameid").item(0).getTextContent() + "</geonameId>";
+			ret += "<name>" + res.getElementsByTagName("name").item(0).getTextContent() + "</name>";
+			ret += "<admin1>" + res.getElementsByTagName("admin1").item(0).getTextContent() + "</admin1>";
+			ret += "<country>" + res.getElementsByTagName("country_code").item(0).getTextContent() + "</country>";
+			ret += "<latitude>" + res.getElementsByTagName("latitude").item(0).getTextContent() + "</latitude>";
+			ret += "<longitude>" + res.getElementsByTagName("longitude").item(0).getTextContent() + "</longitude>";
+			
+			return ret;
+		} catch (Exception e) {
+			return "<error>Couldn't parse geonames result correctly.</error>";
+
+		}
+	}
+
+	/**
+	 * Gets top Cheshire result (in normalized XML format).
+	 * 
+	 * @return String of XML result.
+	 */
+	public String getTopReturnResult() {
+		return this.getXMLReturnValue(results.get(0));
+	}
+	
+	/**
+	 * Gets top <code>max</code> Cheshire results (in normalized XML format), in order based on when they were found.  
+	 * Matches for more exact queries will be first, with the top match first. There may be duplicates in this list.
+	 * 
+	 * @param max Maximum number of results to return
+	 * @return String of concatenated XML results, each wrapped in a place tag.
+	 */
+	public String getTopReturnResults(int max) {
+		String result = "";
+		int i = 0;
+		for (String res : results) {
+			result += "<place>" + getXMLReturnValue(res) + "</place>\n";
+			if (i++ > max) break;
+		}
+		return result;
+	}
 
 	/**
 	 *  The following code post-processes NGRAMS searches
