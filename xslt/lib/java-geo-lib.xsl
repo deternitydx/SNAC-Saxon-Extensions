@@ -52,12 +52,11 @@
 			<!-- The below cutoff is the tradeoff between false positives and false negatives.  0.5
 				would eliminate all nearly all false positives.  At 0.06, empirically I see
 				2% false positives and 31% unmatched (not all false negatives) -->
-			<xsl:when test="$location/return/score > 0.06 or $location/return/searchLevel = 0">
+			<xsl:when test="$location/return/score > 0.06">
 				<xsl:attribute name="original" select="$geostring"/>
 				<xsl:attribute name="normalized" select="$location/return/name"/>
 				<xsl:attribute name="geonameid" select="$location/return/geonameid"/>
 				<xsl:attribute name="confidence" select="normalize-space($location/return/score)"/>
-				<xsl:attribute name="level" select="$location/return/searchLevel"/>
 			</xsl:when>
 			<xsl:otherwise>
                                 <xsl:attribute name="original" select="$geostring"/>
