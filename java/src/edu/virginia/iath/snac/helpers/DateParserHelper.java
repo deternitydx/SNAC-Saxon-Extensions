@@ -36,6 +36,12 @@ public class DateParserHelper {
 
 	
 
+	/**
+	 * Constructor.  Initialize this date object with the parameter string.  Automatically runs the parser
+	 * to gather information about the date contained in the parameter.
+	 * 
+	 * @param d Date string to parse.
+	 */
 	public DateParserHelper(String d) {
 		// Initialize dates
 		dates = new ArrayList<SNACDate>();
@@ -47,10 +53,27 @@ public class DateParserHelper {
 		runParser();
 	}
 	
+	/**
+	 * Get the original date string.
+	 * 
+	 * @return Date string passed to the constructor.
+	 */
 	public String getOriginalDate() {
 		return original;
 	}
 	
+	/**
+	 * Date Parser. This is the heart of the date processor, it runs all the preprocessing, splits the string based on the assumptions
+	 * below, parses and creates <code>SNACDate</code> objects for each date in the input string.
+	 * 
+	 * Assumptions in processing:
+	 * <ol>
+	 * <li> commas take priority only when separating 4-digit years or 4-digit years with ranges
+	 * <li> "and"s take second priority, stating that there are multiple dates or date ranges
+	 * <li> "-"s and "through"s take next priority, denoting date ranges
+	 * <li> Since New Style and Old Style are ambiguous (Julian vs Gregorian vs ??), we'll ignore them completely
+	 * </ol>
+	 */
 	private void runParser() {
 		dateStringPreprocess();
 		
@@ -175,10 +198,20 @@ public class DateParserHelper {
 		}
 	}
 
+	/**
+	 * Checks to see if this date string starts with a date range (ex: 1800-1859)
+	 * 
+	 * @return True if a date range, false otherwise
+	 */
 	public boolean isRange() {
 		return dates.get(0).isRange();
 	}
 
+	/**
+	 * Checks whether all portions of this date string was parsed.
+	 * 
+	 * @return True if all date portions were parsed correctly, false otherwise.
+	 */
 	public boolean wasParsed() {
 		boolean parsed = true;
 		for (SNACDate d : dates) {
@@ -187,17 +220,42 @@ public class DateParserHelper {
 		return parsed;
 	}
 	
+	/**
+	 * Get all the date objects from this helper.
+	 * 
+	 * @return List of all <code>SNACDate</code> objects parsed from this string.
+	 */
 	public List<SNACDate> getDates() {
 		return dates;
 	}
 
 	
+	/**
+	 * Preprocess the date string.  Performs the following actions:
+	 * <ul>
+	 * <li>Replace the XML &apos; special characters with actual apostrophes (')
+	 * </ul>
+	 * 
+	 */
 	private void dateStringPreprocess() {
 		// Handle apostrophes that have been converted
 		original = original.replaceAll("&apos;", "'");
 		
 	}
 	
+	/**
+	 * Preprocess the <code>SNACDate</code> parameter based on certain conditions.  Adds modifiers
+	 * based on some conventions:
+	 * <ul>
+	 * <li> Update Sept to Sep, since it is the only 4-letter month human convention.
+	 * <li> Remove brackets.
+	 * <li> Remove circa, ca, c, and replace it with the circa modifier.
+	 * <li> Look for decades (1800s, 1800's, 180?, 18xx) and add the decade modifier.
+	 * <li> Look for fuzzy dates (1800 ?, About 1850) and add the fuzzy modifier.
+	 * <li> Look for seasons and add the season modifier.
+	 * </ul>
+	 * @param d <code>SNACDate</code> to preprocess.
+	 */
 	private void parsePreprocess(SNACDate d) {
 
 		/**
@@ -307,6 +365,13 @@ public class DateParserHelper {
 		
 	}
 	
+	/**
+	 * Postprocess the date at position <code>i</code> in the dates list.  If the date is the second part of
+	 * a date range, but too low compared with the first date in the range (as in 1800-9), then fix the
+	 * second part correctly based on the first (AND the two dates: 1800 and 0009 would be 1809).
+	 * 
+	 * @param i index of the date to postprocess.
+	 */
 	private void parsePostprocess(int i) {
 		// Check to see if this date is incorrectly too low compared with the first one
 		SNACDate cur = dates.get(i);
@@ -330,6 +395,13 @@ public class DateParserHelper {
 		
 	}
 	
+	/**
+	 * Call the parsing functions for date d.  This includes calling the preprocessor,
+	 * the date's parse method, and updating the date's output format (based on which
+	 * information is available).
+	 * 
+	 * @param d Date to be parsed.
+	 */
 	private void parseDate(SNACDate d) {
 		
 		// preprocess the date string, including handling boundary cases and special date types.

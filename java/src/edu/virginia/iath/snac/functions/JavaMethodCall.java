@@ -17,19 +17,11 @@
 package edu.virginia.iath.snac.functions;
 
 import java.io.StringReader;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
 
 import javax.xml.transform.stream.StreamSource;
 
-import org.apache.commons.lang3.StringEscapeUtils;
-
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-import edu.virginia.iath.snac.helpers.DateParserHelper;
-import edu.virginia.iath.snac.helpers.datastructures.SNACDate;
 
 //Saxon Imports
 import net.sf.saxon.lib.ExtensionFunctionCall;
@@ -98,6 +90,12 @@ public class JavaMethodCall extends ExtensionFunctionDefinition {
 		return new FunctionCall();
 	}
 
+	/**
+	 * Define the class that contains the JAVA function call.
+	 * 
+	 * @author Robbie Hott
+	 *
+	 */
 	private static class FunctionCall extends ExtensionFunctionCall
 	{
 		/**
@@ -111,28 +109,16 @@ public class JavaMethodCall extends ExtensionFunctionDefinition {
 		 * The function will return valid XML, consisting of:
 		 * 
 		 * <return>
-		 * 		<date>...</date>
 		 * 		...
 		 * </return>
 		 * 
-		 * or
 		 * 
-		 * <return>
-		 * 	  <dateRange>
-		 * 		<fromDate>...</fromDate>
-		 * 		<toDate>...</toDate>
-		 * 	  </dateRange>
-		 * 	  ...
-		 * </return>
-		 * 
-		 * or a combination of dates and dateRanges inside a return.
-		 * 
-		 * 
-		 * @param XPathContext context the context of the call
-		 * @param Sequence[] arguments the arguments supplied to the call
+		 * @param context the context of the call
+		 * @param arguments the arguments supplied to the call
 		 * @return Sequence the output of the call
 		 * 
 		 */
+		@SuppressWarnings("unused")
 		@Override
 		public Sequence call(XPathContext context, Sequence[] arguments)
 		{
@@ -154,37 +140,6 @@ public class JavaMethodCall extends ExtensionFunctionDefinition {
 					
 					// Build an XML object out of the results
 					xml = "<return>";
-					/**for (SNACDate d : dates) {
-						// Open the tags
-						if (d.getType() == SNACDate.FROM_DATE)
-							xml += "<dateRange>\n<fromDate";
-						else if (d.getType() == SNACDate.TO_DATE)
-							xml += "<toDate";
-						else
-							xml += "<date";
-						
-						// Add the dates to the XML
-						if (!d.getParsedDate().equals("null"))
-							xml += " standardDate=\"" + d.getParsedDate() + "\"";
-						if (!d.getNotBefore().equals("null"))
-							xml += " notBefore=\"" + d.getNotBefore() + "\"";
-						if (!d.getNotAfter().equals("null"))
-							xml += " notAfter=\"" + d.getNotAfter() + "\"";
-						
-						// Close the open tags
-						xml += ">";
-						
-						// Add the original date passed to Java
-						xml += d.getOriginalDate();
-						
-						// Close the tags
-						if (d.getType() == SNACDate.FROM_DATE)
-							xml += "</fromDate>\n";
-						else if (d.getType() == SNACDate.TO_DATE)
-							xml += "</toDate></dateRange>\n";
-						else
-							xml += "</date>\n";
-					}**/
 					xml += "</return>";
 					
 			
@@ -203,6 +158,11 @@ public class JavaMethodCall extends ExtensionFunctionDefinition {
 		}
 	}
 	
+	/**
+	 * Main method used for testing purposes.
+	 * 
+	 * @param args
+	 */
 	public static void main(String[] args) {
 		try {
 			String cla = "java.util.Calendar";
@@ -218,7 +178,7 @@ public class JavaMethodCall extends ExtensionFunctionDefinition {
 					try {
 						m.setAccessible(true);
 						System.out.println(m.invoke(c.newInstance()));
-						//System.out.println(m.invoke(new Object(), Double.parseDouble(param)));
+						System.out.println(m.invoke(new Object(), Double.parseDouble(param)));
 						called = true;
 						break;
 					} catch (Exception e) {
@@ -234,13 +194,10 @@ public class JavaMethodCall extends ExtensionFunctionDefinition {
 			//Method m = c.getMethod(method, new Class[] {Object.class});
 			//System.out.println(m.invoke(c.newInstance(), param));
 		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IllegalArgumentException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (SecurityException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		

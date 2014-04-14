@@ -20,16 +20,12 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.net.URL;
-import java.util.List;
 
 import javax.xml.transform.stream.StreamSource;
 
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
-
-import edu.virginia.iath.snac.helpers.DateParserHelper;
-import edu.virginia.iath.snac.helpers.datastructures.SNACDate;
 
 //Saxon Imports
 import net.sf.saxon.lib.ExtensionFunctionCall;
@@ -44,7 +40,7 @@ import net.sf.saxon.trans.XPathException;
 
 
 /**
- * Date parser SAXON extension.
+ * GeoNames web lookup SAXON extension.
  * 
  * @author Robbie Hott
  *
@@ -96,6 +92,12 @@ public class GeoNamesWebLookup extends ExtensionFunctionDefinition {
 		return new FunctionCall();
 	}
 
+	/**
+	 * Define the class that contains the JAVA function call.
+	 * 
+	 * @author Robbie Hott
+	 *
+	 */
 	private static class FunctionCall extends ExtensionFunctionCall
 	{
 		/**
@@ -109,26 +111,14 @@ public class GeoNamesWebLookup extends ExtensionFunctionDefinition {
 		 * The function will return valid XML, consisting of:
 		 * 
 		 * <return>
-		 * 		<date>...</date>
 		 * 		...
 		 * </return>
 		 * 
-		 * or
-		 * 
-		 * <return>
-		 * 	  <dateRange>
-		 * 		<fromDate>...</fromDate>
-		 * 		<toDate>...</toDate>
-		 * 	  </dateRange>
-		 * 	  ...
-		 * </return>
-		 * 
-		 * or a combination of dates and dateRanges inside a return.
 		 * 
 		 * 
-		 * @param XPathContext context the context of the call
-		 * @param Sequence[] arguments the arguments supplied to the call
-		 * @return Sequence the output of the call
+		 * @param context the context of the call
+		 * @param arguments the arguments supplied to the call
+		 * @return Sequence of GeoNames resulting XML
 		 * 
 		 */
 		@Override

@@ -91,6 +91,12 @@ public class DateParser extends ExtensionFunctionDefinition {
 		return new FunctionCall();
 	}
 
+	/**
+	 * Define the class that contains the JAVA function call.
+	 * 
+	 * @author Robbie Hott
+	 *
+	 */
 	private static class FunctionCall extends ExtensionFunctionCall
 	{
 		/**
@@ -121,8 +127,8 @@ public class DateParser extends ExtensionFunctionDefinition {
 		 * or a combination of dates and dateRanges inside a return.
 		 * 
 		 * 
-		 * @param XPathContext context the context of the call
-		 * @param Sequence[] arguments the arguments supplied to the call
+		 * @param context the context of the call
+		 * @param arguments the arguments supplied to the call
 		 * @return Sequence the output of the call
 		 * 
 		 */

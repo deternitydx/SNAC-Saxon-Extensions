@@ -1,5 +1,4 @@
 /**
- *        The Institute for Advanced Technology in the Humanities
  *        
  *        Copyright 2013 University of Virginia. Licensed under the Educational Community License, Version 2.0 (the
  *        "License"); you may not use this file except in compliance with the License. You may obtain a copy of the
@@ -20,7 +19,6 @@ import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.io.StringReader;
 import java.net.Socket;
 import java.net.URL;
 import java.net.URLEncoder;
@@ -32,7 +30,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -1355,6 +1352,7 @@ public class GeoNamesHelper {
 	 * @param diff Number of characters of allowable difference
 	 * @return List of results that are <code>diff</code> number of characters longer/shorter than <code>first</code>
 	 */
+	@SuppressWarnings("unused")
 	private ArrayList<String> getSimilarLengthResults(String first, int diff) {
 		// Sanity checks
 		if (first == null)
@@ -1394,6 +1392,7 @@ public class GeoNamesHelper {
 	 * @param ngramLength Number of characters per ngram
 	 * @return List of ordered results
 	 */
+	@SuppressWarnings("unused")
 	private ArrayList<String> getOrderedResultsByNGrams(String first, int ngramLength) {
 		ArrayList<String> ret = new ArrayList<String>();
 		ArrayList<GeolocationString> toSort = new ArrayList<GeolocationString>();
@@ -1444,6 +1443,7 @@ public class GeoNamesHelper {
 	 * @param ngramLength Number of characters per ngram
 	 * @return List of ordered results
 	 */
+	@SuppressWarnings("unused")
 	private ArrayList<String> getOrderedResultsByNGramsFlexible(String first, int ngramLength) {
 		ArrayList<String> ret = new ArrayList<String>();
 		ArrayList<GeolocationString> toSort = new ArrayList<GeolocationString>();

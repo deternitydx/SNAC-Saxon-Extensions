@@ -17,9 +17,19 @@
 package edu.virginia.iath.snac.helpers.comparators;
 
 import java.util.Comparator;
-
 import edu.virginia.iath.snac.helpers.datastructures.GeolocationString;
 
+
+/**
+ * Comparator for ngram strings.  This one sorts in the following manner:
+ * <ol>
+ * <li> Sort by alternate names (descending)
+ * <li> Sort by string length (ascending)
+ * <li> Sort by population (descending)
+ * </ol>
+ * @author Robbie Hott
+ *
+ */
 public class FlexibleNGramsComparator implements Comparator<GeolocationString> {
 
 	@Override

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project default="javadoc">
+    <target name="javadoc">
+        <javadoc access="private" author="true" classpath="/media/shannon/javarepo/saxon/saxon9he.jar:/media/shannon/javarepo/commons-lang3-3.1/commons-lang3-3.1.jar" destdir="/media/shannon/SNAC-Saxon-Extensions-Doc/javadoc" doctitle="SNAC Saxon Extensions Documentation" nodeprecated="false" nodeprecatedlist="false" noindex="false" nonavbar="false" notree="false" packagenames="edu.virginia.iath.snac.helpers.comparators,edu.virginia.iath.snac.helpers.datastructures,edu.virginia.iath.snac,edu.virginia.iath.snac.functions,edu.virginia.iath.snac.helpers" source="1.7" sourcepath="src" splitindex="true" use="true" version="true">
+            <link href="http://commons.apache.org/proper/commons-lang/javadocs/api-3.1/"/>
+            <link href="http://www.saxonica.com/documentation/Javadoc/"/>
+        </javadoc>
+    </target>
+</project>

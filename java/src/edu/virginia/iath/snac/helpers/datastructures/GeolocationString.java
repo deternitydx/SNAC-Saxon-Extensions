@@ -32,6 +32,8 @@ public class GeolocationString {
 	private String string;
 	private int ngramLength;
 	private Set<String> ngrams;
+	
+	@SuppressWarnings("unused")
 	private GeolocationString master;
 	private int overlapWithMaster;
 	private int differenceFromMaster;

@@ -16,20 +16,8 @@
  */
 package edu.virginia.iath.snac.functions;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.io.StringReader;
-import java.net.Socket;
-import java.net.URL;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
 import javax.xml.transform.stream.StreamSource;
-
-import org.apache.commons.lang3.StringEscapeUtils;
 
 import edu.virginia.iath.snac.helpers.GeoNamesHelper;
 
@@ -46,7 +34,7 @@ import net.sf.saxon.trans.XPathException;
 
 
 /**
- * Date parser SAXON extension.
+ * Cheshire GeoNames SAXON extension.
  * 
  * @author Robbie Hott
  *
@@ -98,6 +86,11 @@ public class GeoNamesCheshire extends ExtensionFunctionDefinition {
 		return new FunctionCall();
 	}
 
+	/**
+	 * Define the class that contains the JAVA function call.
+	 * @author Robbie Hott
+	 *
+	 */
 	private static class FunctionCall extends ExtensionFunctionCall
 	{
 		/**
@@ -111,26 +104,14 @@ public class GeoNamesCheshire extends ExtensionFunctionDefinition {
 		 * The function will return valid XML, consisting of:
 		 * 
 		 * <return>
-		 * 		<date>...</date>
 		 * 		...
 		 * </return>
 		 * 
-		 * or
-		 * 
-		 * <return>
-		 * 	  <dateRange>
-		 * 		<fromDate>...</fromDate>
-		 * 		<toDate>...</toDate>
-		 * 	  </dateRange>
-		 * 	  ...
-		 * </return>
-		 * 
-		 * or a combination of dates and dateRanges inside a return.
 		 * 
 		 * 
-		 * @param XPathContext context the context of the call
-		 * @param Sequence[] arguments the arguments supplied to the call
-		 * @return Sequence the output of the call
+		 * @param context the context of the call
+		 * @param arguments the arguments supplied to the call
+		 * @return Sequence the GeoNames result(s)
 		 * 
 		 */
 		@Override

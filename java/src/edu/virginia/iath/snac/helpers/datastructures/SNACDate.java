@@ -35,8 +35,17 @@ import org.apache.commons.lang3.time.DateUtils;
  */
 public class SNACDate {
 	
+	/**
+	 * Standalone date.
+	 */
 	public final static int STANDALONE = 0;
+	/**
+	 * The first part of a date range.
+	 */
 	public final static int FROM_DATE = 1;
+	/**
+	 * The second part of a date range.
+	 */
 	public final static int TO_DATE = 2;
 	
 	// The date string that's been simplified
@@ -58,26 +67,54 @@ public class SNACDate {
 	// If this date is part of a series or individual
 	private int type = 0;
 	
+	/**
+	 * Constructor.  Creates a standalone <code>SNACDate</code> with the
+	 * date string.
+	 * 
+	 * @param date Date string to be parsed in this object.
+	 */
 	public SNACDate(String date) {
 		origDateStr = dateStr = date;
 		dateStrModifier = new ArrayList<String>();
 		type = SNACDate.STANDALONE;
 	}
 	
+	/**
+	 * Constructor. Creates a <code>SNACDate</code> object of type <code>t</code>
+	 * with the date string.
+	 * 
+	 * @param date Date string to be parsed in this object.
+	 * @param t Type of date to create (Standalone, FromDate, ToDate)
+	 */
 	public SNACDate(String date, int t) {
 		origDateStr = dateStr = date;
 		dateStrModifier = new ArrayList<String>();
 		type = t;
 	}
 	
+	/**
+	 * Checks to see if this date is part of a range.
+	 * 
+	 * @return True if part of a range, false otherwise.
+	 */
 	public boolean isRange() {
 		return type > 0;
 	}
 	
+	/**
+	 * Checks to see if this date is the end of a date range.
+	 * 
+	 * @return True if end of a date range, false otherwise.
+	 */
 	public boolean isToDate() {
 		return type == SNACDate.TO_DATE;
 	}
 	
+	/**
+	 * Checks to see if this date was parsed correctly.
+	 * 
+	 * @return True if parsed, false otherwise.
+	 */
 	public boolean wasParsed() {
 		return parsed;
 	}
@@ -85,6 +122,13 @@ public class SNACDate {
 	
 	
 	
+	/**
+	 * Updates the output format of the string. Use this method after parsing the dates, but
+	 * before the getting the String of the normalized date.  This method formats the date string
+	 * according to the information available.  If there is a season, it does not modify. If there
+	 * is a decade, it sets the date to return only years.  If there is month or date information, it
+	 * sets the date to return those appropriately.
+	 */
 	public void updateOutputFormat() {
 		if (dateStrModifier.contains("season"))
 			return;
@@ -107,10 +151,21 @@ public class SNACDate {
 		}
 	}
 	
+	/**
+	 * Validates this date as truly parsed.  Sets parsed to true.
+	 */
 	public void validateParsed() {
 		parsed = true;
 	}
 	
+	/**
+	 * Parses this <code>SNACDate</code>'s date string into the correct Java Calendar objects for the date.
+	 * If there is an <code>or</code> in the date string, it parses into not-before and not-after dates (with a null
+	 * exact date).  Else, it parses the date directly.  If the date was unable to be parsed, it sets the parsed date
+	 * to null.  Empty to-dates (end of a range) are allowed.
+	 * 
+	 * @return True if date was successfully parsed, false otherwise.
+	 */
 	public boolean parseDate() {
 		
 		try {
@@ -135,6 +190,15 @@ public class SNACDate {
 		return false;
 	}
 	
+	/**
+	 * Parses the parameter string into a Java Calendar object.  This meothod uses Apache's date parser utilities
+	 * to catch multiple forms of dates available.  This prioritizes for year first, then combinations of month,
+	 * day, and year in most human writeable forms.
+	 * 
+	 * @param str String to be parsed.
+	 * @return Calendar object of the given date string.
+	 * @throws ParseException If date cannot be parsed, this method throws the ParseExeption.
+	 */
 	private Calendar parseDate(String str) throws ParseException {
 		Calendar date;
 		date = Calendar.getInstance();
@@ -153,6 +217,21 @@ public class SNACDate {
 		return date;
 	}
 	
+	/**
+	 * Handle all the modifiers on this string.  This should be called as a post-processing step
+	 * after the exact date has been processed.  It adds not-before and not-after dates based on the
+	 * exact date and the following criteria:
+	 * <ul>
+	 * <li> If the circa modifier is applied, give +/- 3 years
+	 * <li> If the fuzzy modifier is applied, give +/- 1 year
+	 * <li> If the decade modifier is applied and the year is a multiple of 100, it's a century, give
+	 * a range of exact date to exact date plus 99 years (ex: 1800-1899). Clears the exact date.
+	 * <li> If the decade modifier is applied and the year is a multiple of 10, it's a decade, give
+	 * a range of exact date to exact date plus 9 years (ex: 1810-1819). Clears the exact date.
+	 * <li> If the season modifier is applied, look up the season dates and use those as the
+	 * range.  Clears the exact date.
+	 * </ul>
+	 */
 	public void handleModifiers() {
 		if (!dateStrModifier.isEmpty()) {
 			if (dateStrModifier.contains("circa")) {
@@ -213,6 +292,15 @@ public class SNACDate {
 		}
 	}
 	
+	/**
+	 * Gets the season dates for the given season and year.  Since the season dates only change
+	 * +/- 2 days across most of time, we store a lookup table and calculate them directly.
+	 * Winter starts in December of the previous year and ends in the given year.
+	 * 
+	 * @param seasonStr Season to lookup (summer, spring, fall, autumn, winter)
+	 * @param year 4-digit year.
+	 * @return Array of Java Calendar objects containing the beginning and end dates of the season.
+	 */
 	private Calendar[] getSeasonDates(String seasonStr, int year) {
 		Calendar[] seasonDates = new Calendar[2];
 		String season = seasonStr.toLowerCase().trim();
@@ -242,26 +330,58 @@ public class SNACDate {
 		return seasonDates;
 	}
 
+	/**
+	 * Gets the cleaned-up version of the original date string stored.
+	 * 
+	 * @return Cleaned version of the date string.
+	 */
 	public String getString() {
 		return dateStr;
 	}
 
+	/**
+	 * Replace the cleaned-up version of the date string with the parameter.
+	 * 
+	 * @param replace String with which to replace the date string.
+	 */
 	public void setString(String replace) {
 		dateStr = replace;
 	}
 	
+	/**
+	 * Add the given modifier to this <code>SNACDate</code> object. Valid modifiers are
+	 * decade, season, season identifiers (spring, winter, summer, fall, autumn), fuzzy,
+	 * and circa.
+	 * 
+	 * @param modifier Modifier string to apply.
+	 */
 	public void addModifier(String modifier) {
 		dateStrModifier.add(modifier);
 	}
 	
+	/**
+	 * Run a find-replace on the date string to clean it up.
+	 * 
+	 * @param find Regular expression to search for.
+	 * @param replace String with which to replace each find instance.
+	 */
 	public void updateString(String find, String replace) {
 		dateStr = dateStr.replace(find, replace);
 	}
 	
+	/**
+	 * Remove instances of <code>find<code> from the date string to clean it up.
+	 * 
+	 * @param find Regular expression for sequences to remove.
+	 */
 	public void updateString(String find) {
 		updateString(find, "");
 	}
 	
+	/**
+	 * Trim out all white space, brackets, parentheses, apostrophes, colons, extra
+	 * spaces, periods, and commas from the date string.
+	 */
 	public void trimString() {
 
 		// Quick fixes, including ending with a period
@@ -281,20 +401,41 @@ public class SNACDate {
 		dateStr = dateStr.trim();
 	}
 	
+	/**
+	 * Get the date object (parsed) from this <code>SNACDate</code>.
+	 * @return Date of the parsed string, or null if unparsed.
+	 */
 	public Date getDate() {
 		if (date != null)
 			return date.getTime();
 		return null;
 	}
 	
+	/**
+	 * Get the year of the parsed date.
+	 * 
+	 * @return Year of the parsed date.
+	 */
 	public int getYear() {
 		return date.get(Calendar.YEAR);
 	}
 	
+	/**
+	 * Update the year of the parsed date to the parameter.
+	 * 
+	 * @param year Year to update the current parsed object
+	 */
 	public void setYear(int year) {
 		date.set(Calendar.YEAR, year);
 	}
 	
+	/**
+	 * Get the formatted date string from a given Calendar object.  This uses the output format
+	 * set up using the <code>updateOutputFormat</code> method.
+	 * 
+	 * @param d Calendar object to be parsed to a String.
+	 * @return Normalized String of the parsed date.
+	 */
 	private String formattedDate(Calendar d) {
 		return (d == null) ? "null" : DateFormatUtils.format(d.getTime(), outputFormat);
 	}
@@ -304,22 +445,47 @@ public class SNACDate {
 		return "{" + getString() + ": " + getParsedDate() + " (" + getNotBefore() + "--" + getNotAfter() + ") "+ dateStrModifier+ "}";
 	}
 	
+	/**
+	 * Get the normalized version of the parsed date as a String.
+	 * 
+	 * @return Parsed date string, null if not parsed.
+	 */
 	public String getParsedDate() {
 		return formattedDate(date);
 	}
 	
+	/**
+	 * Get the normalized version of the parsed not-before date as a String.
+	 * 
+	 * @return Parsed date string, null if not parsed.
+	 */
 	public String getNotBefore() {
 		return formattedDate(notBefore);
 	}
 	
+	/**
+	 * Get the normalized version of the parsed not-after date as a String.
+	 * 
+	 * @return Parsed date string, null if not parsed.
+	 */
 	public String getNotAfter() {
 		return formattedDate(notAfter);
 	}
 	
+	/**
+	 * Get the original uncleaned date string used to create this object.
+	 * 
+	 * @return Original date String.
+	 */
 	public String getOriginalDate() {
 		return origDateStr;
 	}
 	
+	/**
+	 * Get the type of this <code>SNACDate</code> object: Standalone, FromDate, ToDate.
+	 * 
+	 * @return Type of date (as constant).
+	 */
 	public int getType() {
 		return type;
 	}

@@ -20,6 +20,17 @@ import java.util.Comparator;
 
 import edu.virginia.iath.snac.helpers.datastructures.GeolocationString;
 
+/**
+ * Comparator for ngram strings.  This one sorts in the following manner:
+ * <ol>
+ * <li> Sort by difference between strings (number of ngrams not matched) (ascending)
+ * <li> Sort by number of overlapping ngrams (descending)
+ * <li> Sort by alternate names (descending)
+ * <li> Sort by population (descending)
+ * </ol>
+ * @author Robbie Hott
+ *
+ */
 public class DifferenceNGramsComparator implements Comparator<GeolocationString> {
 
 	@Override
@@ -28,12 +39,6 @@ public class DifferenceNGramsComparator implements Comparator<GeolocationString>
 		// 0  = o1 equal to object o2
 		// +1 = o1 greater than object o2
 
-
-		// Sorting method:
-		// 1. Sort by difference between strings (number of ngrams not matched) (ascending)
-		// 2. Sort by number of overlapping ngrams (descending)
-		// 3. Sort by alternate names (descending)
-		// 4. Sort by population (descending)
 		if (o1.getDifference() == o2.getDifference()){
 			if ( o1.getOverlap() == o2.getOverlap() ) {
 				if (o2.getNumAltNames() == o1.getNumAltNames()) {

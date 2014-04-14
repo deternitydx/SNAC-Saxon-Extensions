@@ -70,6 +70,8 @@ public class SnacTransform {
 	}
 
 	/**
+	 * Parses command line arguments and sends the first two to Saxon's transform method call.
+	 * 
 	 * @param args
 	 */
 	public static void main(String[] args) {
