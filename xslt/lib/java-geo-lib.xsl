@@ -11,7 +11,8 @@
                 xmlns:madsrdf="http://www.loc.gov/mads/rdf/v1#"
                 xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
                 xmlns:mads="http://www.loc.gov/mads/"
-                xmlns:snacwc="http://socialarchive.iath.virginia.edu/worldcat"
+                xmlns:snac="http://socialarchive.iath.virginia.edu/" 
+		xmlns:snacwc="http://socialarchive.iath.virginia.edu/worldcat"
 		            xmlns:saxext="http://example.com/saxon-extension"
                 exclude-result-prefixes="eac lib xs saxon xsl madsrdf rdf mads functx marc snacwc rel saxext"
                 >
@@ -48,14 +49,14 @@
       <xsl:param name="geostring"/>
       <xsl:variable name="location" select="saxext:geonames-cheshire($geostring)"/>
       <xsl:variable name="geonamesAddr" select='"http://www.geonames.org/"'/>
-	  <snacplaceEntry>
+	  <snac:placeEntry>
 		<placeEntry><xsl:value-of select="$geostring"/></placeEntry>
 		<xsl:choose>
 			<!-- The below cutoff is the tradeoff between false positives and false negatives.  0.5
 				would eliminate all nearly all false positives.  At 0.06, empirically I see
 				2% false positives and 31% unmatched (not all false negatives) -->
 			<xsl:when test="$location/return/score > 0.06">
-				<snacplaceEntryLikelySame>
+				<snac:placeEntryLikelySame>
 					<xsl:attribute name="vocabularySource" select="concat($geonamesAddr, $location/return/geonameId)"/>
 					<xsl:attribute name="certaintyScore" select="normalize-space($location/return/score)"/>
 					<xsl:attribute name="latitude" select="normalize-space($location/return/latitude)"/>
@@ -63,10 +64,10 @@
 					<xsl:attribute name="countryCode" select="normalize-space($location/return/country)"/>
 					<xsl:attribute name="administrativeCode" select="normalize-space($location/return/admin1)"/>
 					<xsl:value-of select="$location/return/name"/>
-				</snacplaceEntryLikelySame>
+				</snac:placeEntryLikelySame>
 			</xsl:when>
 			<xsl:otherwise>
-				<snacplaceEntryBestMaybeSame>
+				<snac:placeEntryBestMaybeSame>
 					<xsl:attribute name="vocabularySource" select="concat($geonamesAddr, $location/return/geonameId)"/>
 					<xsl:attribute name="certaintyScore" select="normalize-space($location/return/score)"/>
 					<xsl:attribute name="latitude" select="normalize-space($location/return/latitude)"/>
@@ -74,19 +75,19 @@
 					<xsl:attribute name="countryCode" select="normalize-space($location/return/country)"/>
 					<xsl:attribute name="administrativeCode" select="normalize-space($location/return/admin1)"/>
 					<xsl:value-of select="$location/return/name"/>
-				</snacplaceEntryBestMaybeSame>
+				</snac:placeEntryBestMaybeSame>
 			</xsl:otherwise>
 		</xsl:choose>
 		<xsl:for-each select="$location/return/otherResults/place">
-			<snacplaceEntryMaybeSame>
+			<snac:placeEntryMaybeSame>
 				<xsl:attribute name="vocabularySource" select="concat($geonamesAddr, geonameId)"/>
 				<xsl:attribute name="latitude" select="normalize-space(latitude)"/>
 				<xsl:attribute name="longitude" select="normalize-space(longitude)"/>
 				<xsl:attribute name="countryCode" select="normalize-space(country)"/>
 				<xsl:attribute name="administrativeCode" select="normalize-space(admin1)"/>
 				<xsl:value-of select="name"/>
-			</snacplaceEntryMaybeSame>
+			</snac:placeEntryMaybeSame>
 		</xsl:for-each>
-	  </snacplaceEntry>
+	  </snac:placeEntry>
     </xsl:template>
 </xsl:stylesheet>
