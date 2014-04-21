@@ -869,6 +869,12 @@ public class GeoNamesHelper {
 			result = result.toLowerCase().replaceAll("\\.", " ");
 
 		result = result.toLowerCase().replaceAll("\\.", "");
+		
+		// If the string starts with a parenthesis, then we don't want to consider that as part of a
+		// clarification string, so we'll remove it first
+		if (result.startsWith("(")) {
+			result = result.substring(1);
+		}
 
 		// Convert (place) to , place
 		// for now, not using the regex, but replacing the ( with , and ) with nothing
@@ -1285,6 +1291,27 @@ public class GeoNamesHelper {
 		String result = "";
 		int i = 0;
 		for (String res : results) {
+			result += "<place>" + getXMLReturnValue(res) + "</place>\n";
+			if (i++ > max) break;
+		}
+		return result;
+	}
+	
+	/**
+	 * Gets <code>max</code> next Cheshire results (in normalized XML format), in no particular order. It ignores the
+	 * first best match, only returning results 2 to max.  There are no duplicates in this list.
+	 * 
+	 * @param max Maximum number of results to return
+	 * @return String of concatenated XML results, each wrapped in a place tag.
+	 */
+	public String getNextUniqueReturnResults(int max) {
+		String result = "";
+		int i = 0;
+		HashSet<String> uniqueResults = new HashSet<String>();
+		uniqueResults.addAll(results);
+		if (results.size() > 0) 
+			uniqueResults.remove(results.get(0));
+		for (String res : uniqueResults) {
 			result += "<place>" + getXMLReturnValue(res) + "</place>\n";
 			if (i++ > max) break;
 		}

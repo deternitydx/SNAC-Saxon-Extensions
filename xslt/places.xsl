@@ -11,6 +11,7 @@
 		xmlns:xlink="http://www.w3.org/1999/xlink" 
 		xmlns:saxext="http://example.com/saxon-extension"
                 xmlns="urn:isbn:1-931666-33-4"
+                xmlns:snac="urn:isbn:1-931666-33-4"
 		version="2.0" extension-element-prefixes="date exsl" exclude-result-prefixes="xsl saxext xs lib eac xlink rel bl">
   <xsl:include href="lib/java-date-lib.xsl"/>
   <xsl:include href="lib/java-geo-lib.xsl"/>

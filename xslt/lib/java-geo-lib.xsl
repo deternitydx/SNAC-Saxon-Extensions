@@ -47,27 +47,46 @@
     <xsl:template name="tpt_query_cheshire">
       <xsl:param name="geostring"/>
       <xsl:variable name="location" select="saxext:geonames-cheshire($geostring)"/>
-	  <placeEntry>
+      <xsl:variable name="geonamesAddr" select='"http://www.geonames.org/"'/>
+	  <snacplaceEntry>
+		<placeEntry><xsl:value-of select="$geostring"/></placeEntry>
 		<xsl:choose>
 			<!-- The below cutoff is the tradeoff between false positives and false negatives.  0.5
 				would eliminate all nearly all false positives.  At 0.06, empirically I see
 				2% false positives and 31% unmatched (not all false negatives) -->
 			<xsl:when test="$location/return/score > 0.06">
-				<xsl:attribute name="original" select="$geostring"/>
-				<xsl:attribute name="normalized" select="$location/return/name"/>
-				<xsl:attribute name="geonameid" select="$location/return/geonameid"/>
-				<xsl:attribute name="confidence" select="normalize-space($location/return/score)"/>
+				<snacplaceEntryLikelySame>
+					<xsl:attribute name="vocabularySource" select="concat($geonamesAddr, $location/return/geonameId)"/>
+					<xsl:attribute name="certaintyScore" select="normalize-space($location/return/score)"/>
+					<xsl:attribute name="latitude" select="normalize-space($location/return/latitude)"/>
+					<xsl:attribute name="longitude" select="normalize-space($location/return/longitude)"/>
+					<xsl:attribute name="countryCode" select="normalize-space($location/return/country)"/>
+					<xsl:attribute name="administrativeCode" select="normalize-space($location/return/admin1)"/>
+					<xsl:value-of select="$location/return/name"/>
+				</snacplaceEntryLikelySame>
 			</xsl:when>
 			<xsl:otherwise>
-                                <xsl:attribute name="original" select="$geostring"/>
-				<xsl:attribute name="normalized" select="$location/return/name"/>
-                                <xsl:attribute name="geonameid" select="null"/>
-				<xsl:attribute name="confidence" select="normalize-space($location/return/score)"/>
-				<xsl:attribute name="level" select="$location/return/searchLevel"/>
+				<snacplaceEntryBestMaybeSame>
+					<xsl:attribute name="vocabularySource" select="concat($geonamesAddr, $location/return/geonameId)"/>
+					<xsl:attribute name="certaintyScore" select="normalize-space($location/return/score)"/>
+					<xsl:attribute name="latitude" select="normalize-space($location/return/latitude)"/>
+					<xsl:attribute name="longitude" select="normalize-space($location/return/longitude)"/>
+					<xsl:attribute name="countryCode" select="normalize-space($location/return/country)"/>
+					<xsl:attribute name="administrativeCode" select="normalize-space($location/return/admin1)"/>
+					<xsl:value-of select="$location/return/name"/>
+				</snacplaceEntryBestMaybeSame>
 			</xsl:otherwise>
 		</xsl:choose>
-
-		<xsl:copy-of select="$location/return/node()"/>
-	  </placeEntry>
+		<xsl:for-each select="$location/return/otherResults/place">
+			<snacplaceEntryMaybeSame>
+				<xsl:attribute name="vocabularySource" select="concat($geonamesAddr, geonameId)"/>
+				<xsl:attribute name="latitude" select="normalize-space(latitude)"/>
+				<xsl:attribute name="longitude" select="normalize-space(longitude)"/>
+				<xsl:attribute name="countryCode" select="normalize-space(country)"/>
+				<xsl:attribute name="administrativeCode" select="normalize-space(admin1)"/>
+				<xsl:value-of select="name"/>
+			</snacplaceEntryMaybeSame>
+		</xsl:for-each>
+	  </snacplaceEntry>
     </xsl:template>
 </xsl:stylesheet>
