@@ -35,7 +35,8 @@
          This is a library of xml templates for date parsing shared by several XSLT scripts.
     -->
 
-    <!-- Parse dates solely in Java.  Send the date parameter to the Java date-parser function, then parse the 1-2 outputs -->
+    <!-- Query Geonames web service for the geographical entry.  This returns a simplified format from Geonames,
+	 and is not useful in SNAC processing -->
     <xsl:template name="tpt_ping_geonames">
       <xsl:param name="geostring"/>
       <xsl:variable name="location" select="saxext:geonames-weblookup($geostring)"/>
@@ -45,6 +46,64 @@
 	  </placeEntry>
     </xsl:template>
 
+    <!-- Query Cheshire's Geonames index for the geographical information
+	 Parameter: the geographical string to lookup
+	 Note: Cheshire must be available on the localhost, running on port 7010.  
+	 See http://deternitydx.github.io/SNAC-Saxon-Extensions for information on setting up Cheshire.
+	 
+	 Returns the snac:placeEntry in correct formatting.
+
+	 A note on the Java implementation:
+	 Matching is done through a variety of steps.  First, an exact string search is performed for
+	 US/Can State, then Country.  If a match is found, no more searching will be performed.  If there
+	 are no matches, the string will be broken down into a first part (up to a comma or open paren) and
+	 the second part.  Exact string searching on each part (as place, state; place, country; etc) will
+	 be performed for (in order) cities, populated places, administrative level 1, administrative level 2,
+	 and other places (buildings, rivers, streams, lakes, areas, etc).  If any exact match is found,
+	 the top results will be returned.
+		The score for these matches will be of the form (top result may appear twice):
+			times top result found / total number of results 
+	 	So, if only one exact match found, score of 1.0 (100%). However, if 3 results are found,
+		the score for the top result will be 0.33 (33%).  It is still likely, however, that the
+		top result is the preferred of the 3.
+	 If no exact string matching was found, we perform an ngrams search for the entire string in
+	 cheshire (name, alternate names, admin1 code).  There are usually over a thousand results, in which
+	 cheshire does not do a great job sorting.  Post-processing is done in the following manner to
+	 bubble up better results to the top, however these results cannot be guaranteed because of the vast
+	 quantity of results found.  The first part of the string (before a comma/open paren) is broken down to
+	 ngrams as well as the geonames name element of each cheshire result.  The cheshire results are then
+	 sorted based on matches to the search string ngrams:
+		1. Sort by difference of ngrams (number of combined ngrams that differ between the two strings) ASC
+		2. Sort by overlap of ngrams (number of ngrams shared between the two strings) DESC
+		3. Number of alternate names in the cheshire result DESC
+			The more popular a place is, the more likely other languages will have made nicknames for
+			this place.  It is used here as an approximation to popularity of the place.
+		4. Population of the cheshire result DESC
+			A secondary approximation to popularity: how many people live there.
+	 The score for ngrams matches is heavily discounted, since as noted above, they cannot be trusted. In
+	 counting the number of results, after sorting, only those matches 2 deviations away from the top cheshire
+	 result are counted (those differing by less than one or two levels of overlapping ngrams).  The score is
+	 derived similarly to the score above:
+			1 / number of top results
+	 The discount is applied as follows:
+		1. If the first part of the string exactly matches the top cheshire result's name, discount by 50%
+			if exact match and only one top result, top score would be 0.5 (50%)
+		2. If the first part of the string is contained in the top cheshire results' name, discount by 90%
+			if contained in and only one top result, top score would be 0.1 (10%)
+		3. Otherwise, discount by 99%	 
+			if only one result, the top score would be 0.01 (1%)
+
+	 For more information and documentation on the Java code, including full JavaDoc documentation, see
+		http://deternitydx.github.io/SNAC-Saxon-Extensions
+
+	 Tradeoff parameter: cutoff for score.  Currently set at 0.06 (below), based on empirical tests of 871 place
+	 names, this gave a good balance between false positives (about 2% in our sample) and false negatives. This
+	 errs on the side of false negatives, where many places would match, but are considered BestMaybeSame rather
+	 than LikelySame.  Increase the number to increase false negatives and decrease false positives.  Using 0.5
+	 would remove all false positives, since the only results with greater score than 0.5 are exact matches, but
+	 were only 50% of our 871-item sample.  Decrease this threshhold and there will be more false positives.
+	 
+	 -->
     <xsl:template name="tpt_query_cheshire">
       <xsl:param name="geostring"/>
       <xsl:variable name="location" select="saxext:geonames-cheshire($geostring)"/>
@@ -53,7 +112,7 @@
 		<placeEntry><xsl:value-of select="$geostring"/></placeEntry>
 		<xsl:choose>
 			<!-- The below cutoff is the tradeoff between false positives and false negatives.  0.5
-				would eliminate all nearly all false positives.  At 0.06, empirically I see
+				would eliminate all nearly all false positives.  At 0.06, empirically we see
 				2% false positives and 31% unmatched (not all false negatives) -->
 			<xsl:when test="$location/return/score > 0.06">
 				<snac:placeEntryLikelySame>
