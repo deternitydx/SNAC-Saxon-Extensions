@@ -41,22 +41,53 @@
 <h2>
 <a name="installation" class="anchor" href="#installation"><span class="octicon octicon-link"></span></a>Installation</h2>
 
-<p>Using the Java extensions requires Saxon 9.5+ HE, which can be downloaded from the Saxon website <a href="http://sourceforge.net/projects/saxon/files/" title="Saxon Download Page">here</a></p>
+<h3>
+<a name="java-dependencies" class="anchor" href="#java-dependencies"><span class="octicon octicon-link"></span></a>Java Dependencies</h3>
 
-<p>The Java date parser extension provided requires Apache Commons, which is made freely available <a href="http://commons.apache.org/proper/commons-lang/download_lang.cgi" title="Apache Commons">here</a>.</p>
+<p>The following JAR files are required to build and run the date and GeoNames parser extensions.  Using the links below, download and unzip (as necessary) the JAR files into a common place:</p>
 
-<p>To install and run, </p>
+<ul>
+<li>We provide extensions to Saxon HE, so you must install the full Saxon library. Saxon 9.5+ HE (the free version of Saxon) can be downloaded from the <a href="http://sourceforge.net/projects/saxon/files/" title="Saxon Download Page">Saxon website</a>.</li>
+<li>Compiling the code with the Java date parser extension requires the Apache Commons Library to handle some date-parsing functionality.  Apache Commons is made freely available <a href="http://commons.apache.org/proper/commons-lang/download_lang.cgi" title="Apache Commons">here</a>.</li>
+<li>The GeoNames parsing extension requires Berkeley's Cheshire to be installed.  Our extensions can be compiled and run without Cheshire, but the GeoNames portion will not function without it.  See the Cheshire Install instructions below to get Cheshire fully up and running with GeoNames.</li>
+</ul><h3>
+<a name="installing" class="anchor" href="#installing"><span class="octicon octicon-link"></span></a>Installing</h3>
+
+<p>To install the Saxon extensions, you need only download and compile our source code.  We provide an ant script to aid in compilation.  This may be completed with the following steps:</p>
 
 <ol>
-<li> Download the zip file of this repository and unzip</li>
-<li> Download and unzip the Saxon 9.5+ HE JAR files</li>
-<li> Download and unzip the Apache Commons JAR files</li>
-<li> Edit the saxon.sh script in the root of this directory, as directed in the file.  It requires a full path to the saxon9he.jar file, the commons-lang3-x.x.jar file, and the java/bin directory from this repository.  If you need to recompile, the source files are found in the java/src directory.</li>
-<li> Execute using: ./saxon.sh /path/to/XMLfile /path/to/XSLTfile</li>
-</ol><h2>
-<a name="usage" class="anchor" href="#usage"><span class="octicon octicon-link"></span></a>Usage</h2>
+<li>Download the SNAC Saxon Extensions (link at the top of the page) and unzip</li>
+<li>Download and unzip the Saxon 9.5+ HE JAR files</li>
+<li>Download and unzip the Apache Commons JAR files</li>
+<li>Download and install the latest Java JDK.  On an Ubuntu Linux system, this may be achieved using the following command: <code>sudo apt-get install default-jdk ant</code>.</li>
+<li>
+<p>Compile extensions into executable JAR file.  The easiest way to install is using our Apache Ant script.  Copy the Saxon and Commons JAR files to the <code>/java/lib</code> folder in <code>SNAC-Saxon-Extensions</code>, then run <code>ant</code> as follows:</p>
 
-<p>See the xslt/date.xsl and xslt/place.xsl for samples on how to use the parsing libraries.  The xslt wrappers for the Java methods are availabe in xslt/lib/.</p>
+<pre><code>&gt; cd SNAC-Saxon-Extensions/java
+&gt; cp /path/to/saxon9he.jar lib/saxon9he.jar
+&gt; cp /path/to/commons-lang3-3.x.jar lib/commons-lang3.jar
+&gt; ant
+</code></pre>
+</li>
+<li>Once the JAR file is built, execute using the new JAR file instead of the original Saxon saxon9he.jar file. For example: <code>java -jar snacTransform.jar /path/to/XMLfile /path/to/XSLTfile</code>
+</li>
+</ol><h2>
+<a name="using-the-new-saxon-extensions" class="anchor" href="#using-the-new-saxon-extensions"><span class="octicon octicon-link"></span></a>Using the new Saxon extensions</h2>
+
+<h3>
+<a name="date-parser" class="anchor" href="#date-parser"><span class="octicon octicon-link"></span></a>Date Parser</h3>
+
+<p>See the xslt/date.xsl file for a sample.  The xslt wrappers for the Java methods are available in xslt/lib/.</p>
+
+<h3>
+<a name="geonames-parser" class="anchor" href="#geonames-parser"><span class="octicon octicon-link"></span></a>GeoNames Parser</h3>
+
+<p>See xslt/place.xsl for a sample on how to use the parsing library.  The xslt wrappers for the Java methods are available in xslt/lib/.</p>
+
+<h2>
+<a name="installing-cheshire" class="anchor" href="#installing-cheshire"><span class="octicon octicon-link"></span></a>Installing Cheshire</h2>
+
+<p>Cheshire is more complicated to install and set up as a service on your machine.  The instructions below are provided for Linux users.</p>
       </section>
     </div>
 
