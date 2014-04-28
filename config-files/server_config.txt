@@ -1,9 +1,4 @@
 
-#
-#   Z3950 Server Initialization File. 
-#   The name and value must be in one line. Double quote should be
-#   placed around a value if the value contains more than one word.
-#	
 #	FIELD_NAME			VALUE
 
 PREFERRED_MESSAGE_SIZE			32768
