@@ -1,0 +1,19 @@
+# default: off
+# description: An RFC 868 time server. This protocol provides a
+# site-independent, machine readable date and time. The Time service sends back
+# to the originating source the time in seconds since midnight on January first
+# 1900.
+# This is the tcp version.
+service jcheshire
+{
+	disable		= no
+	type		= UNLISTED
+	id		= jcheshire
+	socket_type	= stream
+	protocol	= tcp
+	user		= nobody
+	wait		= no
+	server		= /usr/bin/jserver 
+	server_args	= -c /full/path/to/jserver/config/server_config.txt
+	port		= 7010
+}                                                                               

@@ -1,0 +1,56 @@
+
+#
+#   Z3950 Server Initialization File. 
+#   The name and value must be in one line. Double quote should be
+#   placed around a value if the value contains more than one word.
+#	
+#	FIELD_NAME			VALUE
+
+PREFERRED_MESSAGE_SIZE			32768
+MAXIMUM_RECORD_SIZE			131072
+IMPLEMENTATION_ID			"1998"
+IMPLEMENTATION_NAME			"Mycroft (Cheshire II V3 JServer)"
+IMPLEMENTATION_VERSION			"2.4"
+PROTOCOL_VERSION			"111"
+OPTIONS					"111011111000001"
+PORT					"7010"  # testing port number
+DATABASE_NAMES				"data"
+DATABASE_DIRECTORIES			"/full/path/to/basedir/GeoNames"
+DATABASE_CONFIGFILES			"/full/path/to/config/geonames_config.txt" # list of configfiles
+SUPPORT_NAMED_RESULT_SET		1    			# 1 means YES
+SUPPORT_MULTIPLE_DATABASE_SEARCH	1    			# 0 means NO
+TIMEOUT					120  			# in seconds
+LOG_FILE_NAME				"jserver.log"
+RESULT_SET_DIRECTORY			"/var/tmp"
+ATTRIBUTE_SET_ID			"1.2.840.10003.3.1 1.2.840.10003.3.2 1.2.840.10003.3.5"	# BIB-1, EXP-1, and GILS
+#
+#
+SUPPORT_TYPE_0_QUERY			1
+SUPPORT_TYPE_1_QUERY			1
+SUPPORT_TYPE_2_QUERY			0
+SUPPORT_TYPE_100_QUERY			0
+SUPPORT_TYPE_101_QUERY			1
+SUPPORT_TYPE_102_QUERY			1
+#
+#
+SUPPORT_ELEMENT_SET_NAMES		1
+SUPPORT_SINGLE_ELEMENT_SET_NAME		0
+#
+#
+#   Information for generation of explain database
+#
+TARGETINFO_NEWS			"No news at the present time."
+TARGETINFO_WELCOME_MSG		"Welcome the Mycroft Server powered by Cheshire II"
+TARGETINFO_CONTACT_NAME		"Ray Larson"
+TARGETINFO_CONTACT_DESCRIPTION	"Cheshire II Project Director"
+TARGETINFO_CONTACT_ADDRESS	"School of Information Management and Systems, University of California, Berkeley, 102 South Hall 4600, Berkeley, California 94720-4600 USA"
+TARGETINFO_CONTACT_EMAIL	""
+# TARGETINFO_CONTACT_PHONE
+TARGETINFO_DESCRIPTION		"This server is primarily for testing purposes and hosts a number of sample and test databases."
+TARGETINFO_USAGE_RESTRICTION	"No usage restrictions"
+TARGETINFO_PAYMENT_ADDRESS	"This server is free"
+TARGETINFO_HOURS		"Should never be down, except it may fail while development is ongoing"
+TARGETINFO_LANGUAGES		"eng" #can be a list of all languages avail
+#
+#	End of The Server Initialization File.
+#
