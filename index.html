@@ -60,7 +60,8 @@
 <li>Download and unzip the Saxon 9.5+ HE JAR files</li>
 <li>Download and unzip the Apache Commons JAR files</li>
 <li>Download and install the latest Java JDK.  On an Ubuntu Linux system, this may be achieved using the following command: <code>sudo apt-get install default-jdk ant</code>.</li>
-<li>Compile extensions into executable JAR file.  The easiest way to install is using our Apache Ant script.  Copy the Saxon and Commons JAR files to the <code>/java/lib</code> folder in <code>SNAC-Saxon-Extensions</code>, then run <code>ant</code> as follows:
+<li>
+<p>Compile extensions into executable JAR file.  The easiest way to install is using our Apache Ant script.  Copy the Saxon and Commons JAR files to the <code>/java/lib</code> folder in <code>SNAC-Saxon-Extensions</code>, then run <code>ant</code> as follows:</p>
 
 <pre><code>&gt; cd SNAC-Saxon-Extensions/java
 &gt; cp /path/to/saxon9he.jar lib/saxon9he.jar
@@ -87,6 +88,42 @@
 <a name="installing-cheshire" class="anchor" href="#installing-cheshire"><span class="octicon octicon-link"></span></a>Installing Cheshire</h2>
 
 <p>Cheshire is more complicated to install and set up as a service on your machine.  The instructions below are provided for Linux users.</p>
+
+<ol>
+<li>Download and compile the Cheshire binaries.  They can be found at the <a href="http://cheshire.berkeley.edu/Downloads/" title="Cheshire Downloads">Cheshire homepage</a>.  You will need a C compiler.</li>
+<li>Download the GeoNames data from their <a href="http://www.geonames.org/" title="GeoNames">website</a>.  This requires a subscription fee to get access to the Premium Data.  Unzip the xml files into a directory, such as <code>GeoNames/data</code>.</li>
+<li>Build indexes for the GeoNames data.<br><ol>
+<li>First, set up a config file.  A sample can be found <a href="config-files/geonames_config.txt">here</a>.  Specifically, note the first few configs:
+
+<ul>
+<li>
+<code>&lt;DBENV&gt; /full/root/path/to/GeoNames/dbenv &lt;/DBENV&gt;</code> defines the location to the database environment.  This directory, <code>dbenv</code> must be world readable AND writable.</li>
+<li>
+<code>&lt;defaultpath&gt; /full/root/path/to/GeoNames &lt;/defaultpath&gt;</code> defines the full path to the base directory of cheshire.  This should include the <code>dbenv</code> directory, config, data, etc.</li>
+<li>
+<code>&lt;FILENAME&gt; data &lt;/FILENAME&gt;</code> defines the directory (or file) where all the geonames data lives.  In this example, the data would be stored in <code>/full/root/path/to/GeoNames/data</code>.</li>
+<li>
+<code>&lt;ASSOCFIL&gt; assoc/geonames_all &lt;/ASSOCFIL&gt;</code> defines the associator file.  This is built early on before indexing.  Note that here it is inside the <code>assoc</code> directory.</li>
+</ul>
+</li>
+<li>Build the associator file.
+
+<ul>
+<li>
+<code>&gt; buildassoc -r data assoc/geonames_all row</code>, since we want to build the associator for the <code>data</code> directory and use GeoName's entry divider, <code>&lt;row&gt;</code>.</li>
+</ul>
+</li>
+<li>Build the indexes for cheshire.
+
+<ul>
+<li>
+<code>&gt; index_cheshire -b -L logfile.txt geonames_config.txt</code>, which will take a long time.  If you use the sample file provided, it will produce all the indexes needed for the Saxon extension. </li>
+</ul>
+</li>
+</ol>
+</li>
+<li>Set up the Cheshire server, <code>jserver</code>.</li>
+</ol>
       </section>
     </div>
 
