@@ -6,7 +6,7 @@ Saxon HE Extensions for use with the SNAC project.  Includes Java parsers for hu
 Documentation
 -------------
 
-More detailed installation and usage instructions are available at the [SNAC Saxon Extensions website](http://deternitydx.githun.io/SNAC-Saxon-Extensions "SNAC Saxon Extensions").
+More detailed installation and usage instructions are available at the [SNAC Saxon Extensions website](http://deternitydx.github.io/SNAC-Saxon-Extensions "SNAC Saxon Extensions").
 
 JavaDoc documentation is available [here](http://deternitydx.github.io/SNAC-Saxon-Extensions/javadoc/ "JavaDoc Documentation").
 
@@ -18,7 +18,7 @@ Using the SNAC Saxon extensions requires Saxon 9.5+ HE, which can be downloaded 
 
 The Java date parser extension provided requires Apache Commons, which is made freely available [here](http://commons.apache.org/proper/commons-lang/download_lang.cgi "Apache Commons").
 
-The Geonames parser exension provided requires Cheshire, which is made freely available [here](http://cheshire.berkeley.edu/ "Cheshire").  More detailed installation instructions for Cheshire are available at the [SNAC Saxon Extensions website](http://deternitydx.githun.io/SNAC-Saxon-Extensions "SNAC Saxon Extensions").
+The Geonames parser exension provided requires Cheshire, which is made freely available [here](http://cheshire.berkeley.edu/ "Cheshire").  More detailed installation instructions for Cheshire are available at the [SNAC Saxon Extensions website](http://deternitydx.github.io/SNAC-Saxon-Extensions "SNAC Saxon Extensions").
   
 
 Usage
