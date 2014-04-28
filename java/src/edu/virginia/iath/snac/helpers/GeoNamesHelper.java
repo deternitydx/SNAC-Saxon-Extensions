@@ -52,7 +52,7 @@ import edu.virginia.iath.snac.helpers.datastructures.GeolocationString;
  * @author Robbie Hott
  */
 public class GeoNamesHelper {
-	private static final boolean debug = true;
+	private static final boolean debug = false;
 	private Socket cheshire;
 	private PrintWriter out;
 	private BufferedReader in;
@@ -89,13 +89,13 @@ public class GeoNamesHelper {
 	}
 
 	/**
-	 * Connects to cheshire via a Socket on localhost, port 12345.
+	 * Connects to cheshire via a Socket on localhost, port 7010.
 	 * 
 	 * @return True if connection was successful, false otherwise.
 	 */
 	public boolean connect() {
 		try {
-			cheshire = new Socket("localhost", 12345);
+			cheshire = new Socket("localhost", 7010);
 			out =
 					new PrintWriter(cheshire.getOutputStream(), true);
 			in =
