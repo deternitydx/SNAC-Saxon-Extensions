@@ -1,0 +1,315 @@
+<!-- This is a test config file for Cheshire II -->
+<DBCONFIG>
+<DBENV> /full/root/path/to/GeoNames/dbenv </DBENV>
+
+<!-- The first filedef -->
+<FILEDEF TYPE=SGML>
+<defaultpath> /full/root/path/to/GeoNames </defaultpath>
+
+<!-- filetag is the "shorthand" name of the file -->
+<FILETAG> data </FILETAG>
+
+<!-- filename is the full path name of the file -->
+<FILENAME> data </FILENAME>
+
+<CONTINCLUDE> data.cont </CONTINCLUDE>
+
+<!-- fileDTD is the full path name of the file's DTD -->
+<FILEDTD> Geonames.dtd </FILEDTD>
+
+<!-- assocfil is the full path name of the file's Associator -->
+<ASSOCFIL> assoc/geonames_all </ASSOCFIL>
+
+<!-- history is the full path name of the file's history file -->
+<HISTORY> indexes/dummy.history 
+</HISTORY>
+
+<INDEXES>
+
+<INDEXDEF ACCESS=BTREE EXTRACT=INTEGER NORMAL=DO_NOT_NORMALIZE>
+<INDXNAME> indexes/geonameid_all.index
+</INDXNAME>
+<INDXTAG> geonameid </INDXTAG>
+<INDXKEY>
+<TAGSPEC>
+<FTAG> geonameid </FTAG> 
+</TAGSPEC> 
+</INDXKEY> 
+</INDEXDEF>
+
+<INDEXDEF ACCESS=BTREE EXTRACT=NGRAMS NORMAL=BASIC>
+<INDXNAME> indexes/ngram_all.index
+</INDXNAME>
+<INDXTAG> ngram_all </INDXTAG>
+<INDXKEY>
+<TAGSPEC>
+<FTAG> name </FTAG> 
+<FTAG> asciiname </FTAG>
+<FTAG> alt </FTAG> 
+</TAGSPEC> 
+</INDXKEY> 
+</INDEXDEF>
+
+<INDEXDEF ACCESS=BTREE EXTRACT=NGRAMS NORMAL=BASIC>
+<INDXNAME> indexes/ngram_name_wadmin.index
+</INDXNAME>
+<INDXTAG> ngram_name_wadmin </INDXTAG>
+<INDXKEY>
+<TAGSPEC>
+<FTAG> name </FTAG> 
+<FTAG> admin1 </FTAG> 
+</TAGSPEC> 
+</INDXKEY> 
+</INDEXDEF>
+
+<INDEXDEF ACCESS=BTREE EXTRACT=NGRAMS NORMAL=BASIC>
+<INDXNAME> indexes/ngram_all_wadmin.index
+</INDXNAME>
+<INDXTAG> ngram_wadmin </INDXTAG>
+<INDXKEY>
+<TAGSPEC>
+<FTAG> name </FTAG> 
+<FTAG> asciiname </FTAG>
+<FTAG> alt </FTAG> 
+<FTAG> alternatenames </FTAG> 
+<FTAG> admin1 </FTAG> 
+</TAGSPEC> 
+</INDXKEY> 
+</INDEXDEF>
+
+
+<INDEXDEF ACCESS=BTREE EXTRACT=NGRAMS NORMAL=BASIC>
+<INDXNAME> indexes/ngram.index
+</INDXNAME>
+<INDXTAG> ngram </INDXTAG>
+<INDXKEY>
+<TAGSPEC>
+<FTAG> name </FTAG> 
+<FTAG> asciiname </FTAG> 
+</TAGSPEC> 
+</INDXKEY> 
+</INDEXDEF>
+
+<INDEXDEF ACCESS=BTREE EXTRACT=KEYWORD NORMAL=BASIC>
+<INDXNAME> indexes/name_wadmin.index
+</INDXNAME>
+<INDXTAG> name_wadmin </INDXTAG>
+<INDXKEY>
+<TAGSPEC>
+<FTAG> name </FTAG> 
+<FTAG> asciiname </FTAG> 
+<FTAG> alt </FTAG> 
+<FTAG> alternatenames </FTAG> 
+<FTAG> admin1 </FTAG> 
+</TAGSPEC> 
+</INDXKEY> 
+</INDEXDEF>
+
+<INDEXDEF ACCESS=BTREE EXTRACT=KEYWORD NORMAL=BASIC_NOMAP>
+<INDXNAME> indexes/name_all.index
+</INDXNAME>
+<INDXTAG> name </INDXTAG>
+<INDXMAP> <USE> 1002 </USE><POSIT> 3 </posit> <struct> 6 </struct> </INDXMAP>
+<INDXKEY>
+<TAGSPEC>
+<FTAG> name </FTAG> 
+<FTAG> asciiname </FTAG> 
+</TAGSPEC> 
+</INDXKEY> 
+</INDEXDEF>
+
+<INDEXDEF ACCESS=BTREE EXTRACT=EXACTKEY NORMAL=BASIC_NOMAP>
+<INDXNAME> indexes/xname_all.index </INDXNAME>
+<INDXTAG> exactname </INDXTAG>
+<INDXMAP> <USE> 1002 </USE><POSIT> 1 </posit> <struct> 1 </struct> </INDXMAP>
+<INDXMAP> <USE> 1002 </USE><POSIT> 1 </posit> <struct> 1 </struct><trunc>100</trunc></INDXMAP>
+<INDXKEY>
+<TAGSPEC>
+<FTAG> name </FTAG> 
+<FTAG> asciiname </FTAG> 
+</TAGSPEC> 
+</INDXKEY> 
+</INDEXDEF>
+
+<INDEXDEF ACCESS=BTREE EXTRACT=KEYWORD NORMAL=BASIC_NOMAP>
+<INDXNAME> indexes/intlname_all.index </INDXNAME>
+<INDXTAG> intlname </INDXTAG>
+<INDXMAP> <USE> 10 </USE><POSIT> 3 </posit> <struct> 6 </struct> </INDXMAP>
+<INDXKEY>
+<TAGSPEC>
+<FTAG> alt </FTAG> 
+</TAGSPEC> 
+</INDXKEY> 
+</INDEXDEF>
+
+<INDEXDEF ACCESS=BTREE EXTRACT=EXACTKEY NORMAL=BASIC_NOMAP>
+<INDXNAME> indexes/xintlname_all.index </INDXNAME>
+<INDXTAG> xintlname </INDXTAG>
+<INDXMAP> <USE> 10 </USE><POSIT> 3 </posit> <struct> 6 </struct> </INDXMAP>
+<INDXKEY>
+<TAGSPEC>
+<FTAG> alt </FTAG> 
+</TAGSPEC> 
+</INDXKEY> 
+</INDEXDEF>
+
+<INDEXDEF ACCESS=BTREE EXTRACT=KEYWORD NORMAL=BASIC_NOMAP>
+<INDXNAME> indexes/country_all.index </INDXNAME>
+<INDXTAG> country </INDXTAG>
+<INDXMAP> <USE> 2 </USE><POSIT> 3 </posit> <struct> 6 </struct> </INDXMAP>
+<INDXKEY>
+<TAGSPEC>
+<FTAG> country_code </FTAG> 
+<FTAG> cc2 </FTAG> 
+</TAGSPEC> 
+</INDXKEY> 
+</INDEXDEF>
+
+<INDEXDEF ACCESS=BTREE EXTRACT=EXACTKEY NORMAL=BASIC_NOMAP>
+<INDXNAME> indexes/xcountry_all.index </INDXNAME>
+<INDXTAG> xcountry </INDXTAG>
+<INDXMAP> <USE> 2 </USE><POSIT> 1 </posit> <struct> 6 </struct> </INDXMAP>
+<INDXKEY>
+<TAGSPEC>
+<FTAG> country_code </FTAG> 
+<FTAG> cc2 </FTAG> 
+</TAGSPEC> 
+</INDXKEY> 
+</INDEXDEF>
+
+<INDEXDEF ACCESS=BTREE EXTRACT=KEYWORD NORMAL=BASIC_NOMAP>
+<INDXNAME> indexes/adminregion1_all.index </INDXNAME>
+<INDXTAG> admin1 </INDXTAG>
+<INDXKEY>
+<TAGSPEC>
+<FTAG> admin1 </FTAG> 
+</TAGSPEC> 
+</INDXKEY> 
+</INDEXDEF>
+
+<INDEXDEF ACCESS=BTREE EXTRACT=KEYWORD NORMAL=BASIC_NOMAP>
+<INDXNAME> indexes/adminregion2_all.index </INDXNAME>
+<INDXTAG> admin2 </INDXTAG>
+<INDXKEY>
+<TAGSPEC>
+<FTAG> admin2 </FTAG> 
+</TAGSPEC> 
+</INDXKEY> 
+</INDEXDEF>
+
+<INDEXDEF ACCESS=BTREE EXTRACT=KEYWORD NORMAL=BASIC_NOMAP>
+<INDXNAME> indexes/adminregion3_all.index </INDXNAME>
+<INDXTAG> admin3 </INDXTAG>
+<INDXKEY>
+<TAGSPEC>
+<FTAG> admin3 </FTAG> 
+</TAGSPEC> 
+</INDXKEY> 
+</INDEXDEF>
+
+<INDEXDEF ACCESS=BTREE EXTRACT=KEYWORD NORMAL=BASIC_NOMAP>
+<INDXNAME> indexes/adminregion4_all.index </INDXNAME>
+<INDXTAG> admin4 </INDXTAG>
+<INDXKEY>
+<TAGSPEC>
+<FTAG> admin4 </FTAG> 
+</TAGSPEC> 
+</INDXKEY> 
+</INDEXDEF>
+
+<INDEXDEF ACCESS=BITMAPPED EXTRACT=EXACTKEY NORMAL=BASIC_NOMAP>
+<INDXNAME> indexes/feature_type_all.index
+</INDXNAME>
+<INDXTAG> feature_type </INDXTAG>
+<INDXKEY>
+<TAGSPEC>
+<FTAG> feature_code </FTAG> 
+</TAGSPEC> 
+</INDXKEY> 
+</INDEXDEF>
+
+<INDEXDEF ACCESS=BITMAPPED EXTRACT=EXACTKEY NORMAL=BASIC_NOMAP>
+<INDXNAME> indexes/feature_class_all.index
+</INDXNAME>
+<INDXTAG> feature_class </INDXTAG>
+<INDXKEY>
+<TAGSPEC>
+<FTAG> feature_class </FTAG> 
+</TAGSPEC> 
+</INDXKEY> 
+</INDEXDEF>
+
+<INDEXDEF ACCESS=BITMAPPED EXTRACT=KEYWORD NORMAL=BASIC_NOMAP>
+<INDXNAME> indexes/ccode_all.index
+</INDXNAME>
+<INDXTAG> ccode </INDXTAG>
+<INDXKEY>
+<TAGSPEC>
+<FTAG> country_code </FTAG> 
+<FTAG> cc2 </FTAG> 
+</TAGSPEC> 
+</INDXKEY> 
+</INDEXDEF>
+
+
+<INDEXDEF ACCESS=BTREE EXTRACT=KEYWORD NORMAL=BASIC_NOMAP>
+<INDXNAME> indexes/allnames_all.index
+</INDXNAME>
+<INDXTAG> allnames </INDXTAG>
+<INDXKEY>
+<TAGSPEC>
+<FTAG> name </FTAG> 
+<FTAG> asciiname </FTAG> 
+<FTAG> alternatenames </FTAG> 
+<FTAG> timezone </FTAG> 
+</TAGSPEC> 
+</INDXKEY> 
+</INDEXDEF>
+
+</INDEXES>
+
+<DISPOPTIONS>
+KEEP_ALL
+</DISPOPTIONS>
+
+
+<DISPLAY>
+ <format name="XML_ELEMENT_" OID="1.2.840.10003.5.105">
+  <convert function="XML_ELEMENT">
+    <clusmap>
+      <from>
+         <tagspec>
+	   <ftag>SUBST_ELEMENT</ftag>
+	 </tagspec>
+       </from>
+       <to>
+         <tagspec>
+           <ftag>5</ftag>
+         </tagspec>
+       </to>
+     </clusmap>
+   </convert>
+ </format>
+
+ <format name="XML_ELEMENT_" OID="1.2.840.10003.5.109.10">
+  <convert function="XML_ELEMENT">
+    <clusmap>
+      <from>
+         <tagspec>
+	   <ftag>SUBST_ELEMENT</ftag>
+	 </tagspec>
+       </from>
+       <to>
+         <tagspec>
+           <ftag>SUBST_ELEMENT</ftag>
+         </tagspec>
+       </to>
+     </clusmap>
+   </convert>
+ </format>
+</DISPLAY>
+</FILEDEF> 
+
+</DBCONFIG>
+
+
