@@ -3,7 +3,13 @@
     <!--this file was created by Eclipse Runnable JAR Export Wizard-->
     <!--ANT 1.7 is required                                        -->
     <target name="create_run_jar">
-        <jar destfile="snacTransform.jar" filesetmanifest="mergewithoutmain">
+        <javac srcdir="src"
+         destdir="bin"
+         classpath="lib/saxon9he.jar:lib/commons-lang3.jar"
+         debug="on"
+         source="1.6"
+  	/>
+	<jar destfile="snacTransform.jar" filesetmanifest="mergewithoutmain">
             <manifest>
                 <attribute name="Main-Class" value="edu.virginia.iath.snac.SnacTransform"/>
                 <attribute name="Class-Path" value="."/>
