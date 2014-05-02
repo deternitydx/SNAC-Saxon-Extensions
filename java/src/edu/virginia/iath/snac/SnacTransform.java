@@ -35,7 +35,7 @@ import net.sf.saxon.Configuration;
 
 
 /**
- * SnacTransform package.  Loads extensions and executes Saxon's transform.
+ * SnacTransform.  Loads extensions and executes Saxon's transform.
  * 
  * @author Robbie Hott
  *
@@ -43,35 +43,13 @@ import net.sf.saxon.Configuration;
 public class SnacTransform extends net.sf.saxon.Transform {
 
 	/**
-	 * Transform method to be called from main().  Performs the Saxon transform.
-	 * @param sourcePath
-	 * @param xsltPath
+	 * Override of Transform's configuration initialization function.  We use
+	 * this to add our new extension functions to the transform.
+	 * @param config Saxon Configuration
 	 *
-	public static void simpleTransform(String sourcePath,
-			String xsltPath) throws Exception {
-
-		// Build the transformer factory
-		TransformerFactory tFactory = TransformerFactory.newInstance();
-		TransformerFactoryImpl tFactoryImpl = (TransformerFactoryImpl) tFactory;
-		net.sf.saxon.Configuration saxonConfig = tFactoryImpl.getConfiguration();
-
-		// Need to register each of the extensions built as defined below.
-		saxonConfig.registerExtensionFunction(new DateParser());
-		saxonConfig.registerExtensionFunction(new GeoNamesWebLookup());
-		saxonConfig.registerExtensionFunction(new GeoNamesCheshire());
-
-		// Create the transformer object
-		Transformer transformer =
-				tFactory.newTransformer(new StreamSource(new File(xsltPath)));
-		
-		// Send output to stdout.
-		transformer.transform(new StreamSource(new File(sourcePath)),
-				new StreamResult(System.out));
-
-	}
 	*/
-
 	protected void initializeConfiguration(Configuration config) {
+		// Need to register each of the extensions built as defined below.
 		config.registerExtensionFunction(new DateParser());
 		config.registerExtensionFunction(new GeoNamesWebLookup());
 		config.registerExtensionFunction(new GeoNamesCheshire());
@@ -84,7 +62,6 @@ public class SnacTransform extends net.sf.saxon.Transform {
 	 */
 	public static void main(String[] args) {
 		try {
-			//simpleTransform(args[0], args[1]);
 			(new SnacTransform()).doTransform(args, "java net.sf.saxon.Transform");
 		} catch (Exception e) {
 			System.out.println("Error Initializing Saxon's Default Transform");
