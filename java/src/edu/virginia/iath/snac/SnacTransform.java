@@ -29,7 +29,8 @@ import javax.xml.transform.stream.StreamSource;
 
 // Saxon Imports:
 import net.sf.saxon.TransformerFactoryImpl;
-
+import net.sf.saxon.Transform;
+import net.sf.saxon.Configuration;
 
 
 
@@ -39,13 +40,13 @@ import net.sf.saxon.TransformerFactoryImpl;
  * @author Robbie Hott
  *
  */
-public class SnacTransform {
+public class SnacTransform extends net.sf.saxon.Transform {
 
 	/**
 	 * Transform method to be called from main().  Performs the Saxon transform.
 	 * @param sourcePath
 	 * @param xsltPath
-	 */
+	 *
 	public static void simpleTransform(String sourcePath,
 			String xsltPath) throws Exception {
 
@@ -68,6 +69,13 @@ public class SnacTransform {
 				new StreamResult(System.out));
 
 	}
+	*/
+
+	protected void initializeConfiguration(Configuration config) {
+		config.registerExtensionFunction(new DateParser());
+		config.registerExtensionFunction(new GeoNamesWebLookup());
+		config.registerExtensionFunction(new GeoNamesCheshire());
+        }
 
 	/**
 	 * Parses command line arguments and sends the first two to Saxon's transform method call.
@@ -76,9 +84,10 @@ public class SnacTransform {
 	 */
 	public static void main(String[] args) {
 		try {
-			simpleTransform(args[0], args[1]);
+			//simpleTransform(args[0], args[1]);
+			(new SnacTransform()).doTransform(args, "java net.sf.saxon.Transform");
 		} catch (Exception e) {
-			System.out.println("Command line usage: java SnacTransform [XML File] [XSL Template]");
+			System.out.println("Error Initializing Saxon's Default Transform");
 			e.printStackTrace();
 		}
 	}
