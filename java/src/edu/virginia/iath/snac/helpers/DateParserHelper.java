@@ -143,12 +143,12 @@ public class DateParserHelper {
 		tokens.clear();
 		tokens = tokens2;
 		
-		// for each token, split on - and "through" and create a date for each
+		// for each token, split on - and "through" and " to " and create a date for each
 		for (String token : tokens) {
 			// pad the token in case date ranges are empty, but exist
 			String tmp = " " + token + " ";
 			// split on common range indicators
-			String[] range = tmp.split("[-‐–]|through");
+			String[] range = tmp.split("[-‐–]|through| to ");
 			
 			if (range.length > 1){
 				String supplement = "";
